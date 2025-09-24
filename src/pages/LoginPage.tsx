@@ -1,64 +1,23 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import HomePage from './pages/HomePage';
+import IdeationPage from './pages/IdeationPage';
+import LegalAdvisorPage from './pages/LegalAdvisorPage';
+import SchemeMatchMakerPage from './pages/SchemeMatchMakerPage';
+import FinancialSetupPage from './pages/FinancialSetupPage';
+import BrandingMarketingPage from './pages/BrandingMarketingPage';
+import LoginPage from './pages/LoginPage';
 
-const LoginPage: React.FC = () => {
-  const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    username: '',
-    password: ''
-  });
-  const [showPassword, setShowPassword] = useState(false);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle login logic here
-    console.log('Login attempt:', formData);
-    alert('Login functionality will be implemented with backend integration');
-  };
-
-  const handleGoogleLogin = () => {
-    // Handle Google login logic here
-    alert('Google login functionality will be implemented');
-  };
-
-  const handleSignUp = () => {
-    // Navigate to sign up page or show sign up modal
-    alert('Sign up functionality will be implemented');
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        {/* Back to Home Button */}
-        <div className="mb-8">
-          <button
-            onClick={() => navigate('/')}
-            className="flex items-center text-gray-600 hover:text-blue-600 transition-colors duration-200"
-          >
-            <ArrowLeft className="h-5 w-5 mr-2" />
-            <span className="font-medium">Back to Home</span>
-          </button>
-        </div>
-
-        {/* Login Card */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-3xl shadow-2xl p-8 border border-white/20">
+        {/* Login Card - Centered */}
+        <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl p-8 border border-white/30">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Login</h1>
-            <p className="text-gray-600">Welcome back to Start-up Companion</p>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Login</h1>
           </div>
-
+          <Route path="/ideation" element={<IdeationPage />} />
           {/* Login Form */}
-          <form onSubmit={handleLogin} className="space-y-6">
+          <form onSubmit={handleLogin} className="space-y-5">
             {/* Username Field */}
             <div>
               <input
@@ -67,11 +26,11 @@ const LoginPage: React.FC = () => {
                 value={formData.username}
                 onChange={handleInputChange}
                 placeholder="Username"
-                className="w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 text-gray-900 placeholder-gray-500"
+                className="w-full px-4 py-4 bg-gray-50/80 border border-gray-200 rounded-2xl focus:outline-none focus:ring-3 focus:ring-blue-200 focus:border-blue-500 transition-all duration-200 text-gray-900 placeholder-gray-500"
                 required
               />
             </div>
-
+          onClick={() => navigate('/')}
             {/* Password Field */}
             <div className="relative">
               <input
@@ -80,7 +39,7 @@ const LoginPage: React.FC = () => {
                 value={formData.password}
                 onChange={handleInputChange}
                 placeholder="Password"
-                className="w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 text-gray-900 placeholder-gray-500 pr-12"
+                className="w-full px-4 py-4 bg-gray-50/80 border border-gray-200 rounded-2xl focus:outline-none focus:ring-3 focus:ring-blue-200 focus:border-blue-500 transition-all duration-200 text-gray-900 placeholder-gray-500 pr-12"
                 required
               />
               <button
@@ -91,37 +50,33 @@ const LoginPage: React.FC = () => {
                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
             </div>
-
             {/* Forgot Password */}
             <div className="text-center">
               <button
                 type="button"
-                className="text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200"
+                className="text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200 text-sm"
               >
                 Forgot Password?
               </button>
             </div>
-
             {/* Login Button */}
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-2xl font-semibold text-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 rounded-2xl font-semibold text-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200"
             >
               Login
             </button>
           </form>
-
           {/* Divider */}
-          <div className="my-8 flex items-center">
-            <div className="flex-1 border-t border-gray-200"></div>
+          <div className="my-6 flex items-center">
+            <div className="flex-1 border-t border-gray-300"></div>
             <span className="px-4 text-gray-500 text-sm">Or continue with</span>
-            <div className="flex-1 border-t border-gray-200"></div>
+            <div className="flex-1 border-t border-gray-300"></div>
           </div>
-
           {/* Google Login */}
           <button
             onClick={handleGoogleLogin}
-            className="w-full bg-white border border-gray-200 py-4 rounded-2xl font-medium text-gray-700 hover:bg-gray-50 hover:shadow-lg transition-all duration-200 flex items-center justify-center space-x-3"
+            className="w-full bg-white border border-gray-300 py-4 rounded-2xl font-medium text-gray-700 hover:bg-gray-50 hover:shadow-md transition-all duration-200 flex items-center justify-center space-x-3"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -131,9 +86,8 @@ const LoginPage: React.FC = () => {
             </svg>
             <span>Login with Google</span>
           </button>
-
           {/* Sign Up Link */}
-          <div className="text-center mt-8">
+          <div className="text-center mt-6">
             <span className="text-gray-600">Don't have an account? </span>
             <button
               onClick={handleSignUp}
@@ -143,9 +97,3 @@ const LoginPage: React.FC = () => {
             </button>
           </div>
         </div>
-      </div>
-    </div>
-  );
-};
-
-export default LoginPage;

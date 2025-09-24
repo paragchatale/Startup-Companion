@@ -7,6 +7,7 @@ import LegalAdvisorPage from './pages/LegalAdvisorPage';
 import SchemeMatchMakerPage from './pages/SchemeMatchMakerPage';
 import FinancialSetupPage from './pages/FinancialSetupPage';
 import BrandingMarketingPage from './pages/BrandingMarketingPage';
+import LoginPage from './pages/LoginPage';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="/scheme-match-maker" element={<SchemeMatchMakerPage />} />
           <Route path="/financial-setup" element={<FinancialSetupPage />} />
           <Route path="/branding-marketing" element={<BrandingMarketingPage />} />
+          <Route path="/login" element={<LoginPage />} />
         </Routes>
       </div>
     </Router>
