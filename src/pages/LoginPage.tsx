@@ -35,25 +35,25 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="pt-16 min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center p-4">
+    <div className="pt-16 h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center p-4 overflow-hidden">
       {/* Back to Home Button */}
       <button
         onClick={() => navigate('/')}
-        className="absolute top-20 left-6 flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors duration-200 z-10"
+        className="absolute top-20 left-4 flex items-center space-x-1 text-gray-600 hover:text-gray-800 transition-colors duration-200 z-10 text-sm"
       >
         <ArrowLeft className="h-5 w-5" />
-        <span className="font-medium">Back to Home</span>
+        <span className="font-medium hidden sm:inline">Back to Home</span>
       </button>
 
       {/* Login Card - Centered */}
-      <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl p-8 border border-white/30 w-full max-w-md mx-auto my-8">
+      <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl p-6 border border-white/30 w-full max-w-sm mx-auto">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Login</h1>
+        <div className="text-center mb-6">
+          <h1 className="text-xl font-bold text-gray-900">Login</h1>
         </div>
 
         {/* Login Form */}
-        <form onSubmit={handleLogin} className="space-y-5">
+        <form onSubmit={handleLogin} className="space-y-4">
           {/* Username Field */}
           <div>
             <input
@@ -62,7 +62,7 @@ const LoginPage: React.FC = () => {
               value={formData.username}
               onChange={handleInputChange}
               placeholder="Username"
-              className="w-full px-4 py-4 bg-gray-50/80 border border-gray-200 rounded-2xl focus:outline-none focus:ring-3 focus:ring-blue-200 focus:border-blue-500 transition-all duration-200 text-gray-900 placeholder-gray-500"
+              className="w-full px-4 py-3 bg-gray-50/80 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-all duration-200 text-gray-900 placeholder-gray-500"
               required
             />
           </div>
@@ -75,7 +75,7 @@ const LoginPage: React.FC = () => {
               value={formData.password}
               onChange={handleInputChange}
               placeholder="Password"
-              className="w-full px-4 py-4 bg-gray-50/80 border border-gray-200 rounded-2xl focus:outline-none focus:ring-3 focus:ring-blue-200 focus:border-blue-500 transition-all duration-200 text-gray-900 placeholder-gray-500 pr-12"
+              className="w-full px-4 py-3 bg-gray-50/80 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-all duration-200 text-gray-900 placeholder-gray-500 pr-12"
               required
             />
             <button
@@ -91,7 +91,7 @@ const LoginPage: React.FC = () => {
           <div className="text-center">
             <button
               type="button"
-              className="text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200 text-sm"
+              className="text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200 text-xs"
             >
               Forgot Password?
             </button>
@@ -100,14 +100,14 @@ const LoginPage: React.FC = () => {
           {/* Login Button */}
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 rounded-2xl font-semibold text-lg hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200"
+            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-2xl font-semibold hover:shadow-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-200"
           >
             Login
           </button>
         </form>
 
         {/* Divider */}
-        <div className="my-6 flex items-center">
+        <div className="my-4 flex items-center">
           <div className="flex-1 border-t border-gray-300"></div>
           <span className="px-4 text-gray-500 text-sm">Or continue with</span>
           <div className="flex-1 border-t border-gray-300"></div>
@@ -116,7 +116,7 @@ const LoginPage: React.FC = () => {
         {/* Google Login */}
         <button
           onClick={handleGoogleLogin}
-          className="w-full bg-white border border-gray-300 py-4 rounded-2xl font-medium text-gray-700 hover:bg-gray-50 hover:shadow-md transition-all duration-200 flex items-center justify-center space-x-3"
+          className="w-full bg-white border border-gray-300 py-3 rounded-2xl font-medium text-gray-700 hover:bg-gray-50 hover:shadow-md transition-all duration-200 flex items-center justify-center space-x-3"
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -128,7 +128,7 @@ const LoginPage: React.FC = () => {
         </button>
 
         {/* Sign Up Link */}
-        <div className="text-center mt-6">
+        <div className="text-center mt-4">
           <span className="text-gray-600">Don't have an account? </span>
           <button
             onClick={handleSignUp}
