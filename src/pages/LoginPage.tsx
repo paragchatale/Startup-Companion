@@ -6,7 +6,7 @@ const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    username: '',
+    email: '',
     password: ''
   });
 
@@ -53,14 +53,14 @@ const LoginPage: React.FC = () => {
 
         {/* Login Form */}
         <form onSubmit={handleLogin} className="space-y-4">
-          {/* Username Field */}
+          {/* Email Address Field */}
           <div>
             <input
-              type="text"
-              name="username"
-              value={formData.username}
+              type="email"
+              name="email"
+              value={formData.email}
               onChange={handleInputChange}
-              placeholder="Username"
+              placeholder="Email address"
               className="w-full px-4 py-3 bg-gray-50/80 border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500 transition-all duration-200 text-gray-900 placeholder-gray-500"
               required
             />
