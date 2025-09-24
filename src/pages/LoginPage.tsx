@@ -35,18 +35,18 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center p-4">
+    <div className="pt-16 min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center p-4">
       {/* Back to Home Button */}
       <button
         onClick={() => navigate('/')}
-        className="absolute top-6 left-6 flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors duration-200"
+        className="absolute top-20 left-6 flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors duration-200 z-10"
       >
         <ArrowLeft className="h-5 w-5" />
         <span className="font-medium">Back to Home</span>
       </button>
 
       {/* Login Card - Centered */}
-      <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl p-8 border border-white/30 w-full max-w-md">
+      <div className="bg-white/90 backdrop-blur-sm rounded-3xl shadow-2xl p-8 border border-white/30 w-full max-w-md mx-auto my-8">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Login</h1>
