@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Rocket } from 'lucide-react';
+import { useAuth } from './AuthContext';
 
 const Navbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
+  const { user, signOut } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -20,7 +22,7 @@ const Navbar: React.FC = () => {
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'About Us', path: '/about' },
-    { name: 'Login', path: '/login' }
+    ...(user ? [] : [{ name: 'Login', path: '/login' }])
   ];
 
   return (
@@ -50,12 +52,26 @@ const Navbar: React.FC = () => {
                 {link.name}
               </Link>
             ))}
-            <Link
-              to="/ideation"
-              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-full hover:shadow-lg transform hover:scale-105 transition-all duration-200 font-medium"
-            >
-              Get Started
-            </Link>
+            {user ? (
+              <div className="flex items-center space-x-4">
+                <span className="text-gray-700 font-medium">
+                  Welcome, {user.user_metadata?.full_name || user.email}
+                </span>
+                <button
+                  onClick={signOut}
+                  className="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-2 rounded-full hover:shadow-lg transform hover:scale-105 transition-all duration-200 font-medium"
+                >
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <Link
+                to="/ideation"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-full hover:shadow-lg transform hover:scale-105 transition-all duration-200 font-medium"
+              >
+                Get Started
+              </Link>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -85,13 +101,30 @@ const Navbar: React.FC = () => {
                   {link.name}
                 </Link>
               ))}
-              <Link
-                to="/ideation"
-                onClick={toggleMenu}
-                className="block mx-3 mt-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-full text-center font-medium"
-              >
-                Get Started
-              </Link>
+              {user ? (
+                <div className="mx-3 mt-4 space-y-2">
+                  <div className="text-gray-700 font-medium px-3 py-2">
+                    Welcome, {user.user_metadata?.full_name || user.email}
+                  </div>
+                  <button
+                    onClick={() => {
+                      signOut();
+                      toggleMenu();
+                    }}
+                    className="block w-full bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-2 rounded-full text-center font-medium"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              ) : (
+                <Link
+                  to="/ideation"
+                  onClick={toggleMenu}
+                  className="block mx-3 mt-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-full text-center font-medium"
+                >
+                  Get Started
+                </Link>
+              )}
             </div>
           </div>
         )}

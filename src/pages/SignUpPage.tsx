@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, X, Calendar, ChevronDown } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 const SignUpPage: React.FC = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -23,10 +26,50 @@ const SignUpPage: React.FC = () => {
     }));
   };
 
-  const handleSignUp = (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement signup logic
-    console.log('Sign up attempt:', formData);
+    setLoading(true);
+    setError('');
+
+    // Validate passwords match
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      setLoading(false);
+      return;
+    }
+
+    // Validate password length
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.fullName,
+            gender: formData.gender,
+            date_of_birth: formData.dateOfBirth,
+          }
+        }
+      });
+
+      if (error) {
+        setError(error.message);
+      } else {
+        // Sign up successful, redirect to login with success message
+        alert('Account created successfully! Please check your email to verify your account.');
+        navigate('/login');
+      }
+    } catch (err) {
+      setError('An unexpected error occurred');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleClose = () => {
@@ -53,6 +96,13 @@ const SignUpPage: React.FC = () => {
         <div className="text-center mb-6">
           <h1 className="text-xl font-bold text-gray-900">Sign Up</h1>
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded-2xl text-sm">
+            {error}
+          </div>
+        )}
 
         {/* Sign Up Form */}
         <form onSubmit={handleSignUp} className="space-y-3">
@@ -157,9 +207,10 @@ const SignUpPage: React.FC = () => {
           <div className="pt-4">
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white py-2.5 rounded-2xl font-semibold hover:shadow-xl hover:from-blue-600 hover:to-cyan-600 transition-all duration-200 text-sm"
+             disabled={loading}
+             className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white py-2.5 rounded-2xl font-semibold hover:shadow-xl hover:from-blue-600 hover:to-cyan-600 transition-all duration-200 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Sign Up
+             {loading ? 'Creating Account...' : 'Sign Up'}
             </button>
           </div>
         </form>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './components/AuthContext';
 import Navbar from './components/Navbar';
 import HomePage from './pages/HomePage';
 import IdeationPage from './pages/IdeationPage';
@@ -12,21 +13,23 @@ import SignUpPage from './pages/SignUpPage';
 
 function App() {
   return (
-    <Router>
-      <div className="min-h-screen bg-white">
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/ideation" element={<IdeationPage />} />
-          <Route path="/legal-advisor" element={<LegalAdvisorPage />} />
-          <Route path="/scheme-match-maker" element={<SchemeMatchMakerPage />} />
-          <Route path="/financial-setup" element={<FinancialSetupPage />} />
-          <Route path="/branding-marketing" element={<BrandingMarketingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignUpPage />} />
-        </Routes>
-      </div>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <div className="min-h-screen bg-white">
+          <Navbar />
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/ideation" element={<IdeationPage />} />
+            <Route path="/legal-advisor" element={<LegalAdvisorPage />} />
+            <Route path="/scheme-match-maker" element={<SchemeMatchMakerPage />} />
+            <Route path="/financial-setup" element={<FinancialSetupPage />} />
+            <Route path="/branding-marketing" element={<BrandingMarketingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignUpPage />} />
+          </Routes>
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
 
