@@ -30,8 +30,7 @@ const LoginPage: React.FC = () => {
   };
 
   const handleSignUp = () => {
-    // TODO: Navigate to sign up page or implement sign up logic
-    console.log('Sign up clicked');
+    navigate('/signup');
   };
 
   return (

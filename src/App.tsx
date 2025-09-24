@@ -8,6 +8,7 @@ import SchemeMatchMakerPage from './pages/SchemeMatchMakerPage';
 import FinancialSetupPage from './pages/FinancialSetupPage';
 import BrandingMarketingPage from './pages/BrandingMarketingPage';
 import LoginPage from './pages/LoginPage';
+import SignUpPage from './pages/SignUpPage';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="/financial-setup" element={<FinancialSetupPage />} />
           <Route path="/branding-marketing" element={<BrandingMarketingPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignUpPage />} />
         </Routes>
       </div>
     </Router>
