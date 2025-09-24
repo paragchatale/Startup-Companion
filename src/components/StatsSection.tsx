@@ -88,21 +88,21 @@ const StatsSection: React.FC = () => {
   }, []);
 
   return (
-    <section className="py-16 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 relative overflow-hidden">
+    <section className="py-16 bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-10 left-10 w-32 h-32 bg-white rounded-full blur-3xl"></div>
-        <div className="absolute bottom-10 right-10 w-40 h-40 bg-white rounded-full blur-3xl"></div>
-        <div className="absolute top-1/2 left-1/3 w-24 h-24 bg-white rounded-full blur-2xl"></div>
+        <div className="absolute top-10 left-10 w-32 h-32 bg-blue-300 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-10 right-10 w-40 h-40 bg-purple-300 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/3 w-24 h-24 bg-pink-300 rounded-full blur-2xl"></div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Stats Section */}
         <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
             Trusted by Thousands of Entrepreneurs
           </h2>
-          <p className="text-xl text-indigo-100 max-w-2xl mx-auto mb-12">
+          <p className="text-xl text-gray-700 max-w-2xl mx-auto mb-12">
             Join a community of successful founders who've transformed their ideas into thriving businesses
           </p>
 
@@ -112,17 +112,17 @@ const StatsSection: React.FC = () => {
               return (
                 <div
                   key={index}
-                  className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 hover:bg-white/20 transition-all duration-300 transform hover:scale-105"
+                  className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 hover:bg-white/90 transition-all duration-300 transform hover:scale-105 shadow-lg"
                 >
                   <div className={`inline-flex p-3 rounded-xl bg-gradient-to-r ${stat.gradient} mb-4`}>
                     <IconComponent className="h-6 w-6 text-white" />
                   </div>
                   
-                  <div className="text-3xl font-bold text-white mb-2">
+                  <div className="text-3xl font-bold text-gray-900 mb-2">
                     {stat.isDecimal ? stat.value.toFixed(1) : stat.value}{stat.suffix}
                   </div>
                   
-                  <div className="text-indigo-100 font-medium">
+                  <div className="text-gray-600 font-medium">
                     {stat.label}
                   </div>
                 </div>
@@ -133,7 +133,7 @@ const StatsSection: React.FC = () => {
 
         {/* Trusted Companies Section */}
         <div className="text-center">
-          <h3 className="text-2xl font-semibold text-white mb-8">
+          <h3 className="text-2xl font-semibold text-gray-900 mb-8">
             Trusted by Leading Companies
           </h3>
           
@@ -144,10 +144,10 @@ const StatsSection: React.FC = () => {
               {trustedCompanies.map((company, index) => (
                 <div
                   key={`first-${index}`}
-                  className="flex-shrink-0 mx-8 flex items-center space-x-3 bg-white/10 backdrop-blur-sm rounded-xl px-6 py-4 hover:bg-white/20 transition-all duration-300"
+                  className="flex-shrink-0 mx-8 flex items-center space-x-3 bg-white/70 backdrop-blur-sm rounded-xl px-6 py-4 hover:bg-white/90 transition-all duration-300 shadow-md"
                 >
                   <span className="text-2xl">{company.logo}</span>
-                  <span className="text-white font-medium whitespace-nowrap">
+                  <span className="text-gray-800 font-medium whitespace-nowrap">
                     {company.name}
                   </span>
                 </div>
@@ -157,10 +157,10 @@ const StatsSection: React.FC = () => {
               {trustedCompanies.map((company, index) => (
                 <div
                   key={`second-${index}`}
-                  className="flex-shrink-0 mx-8 flex items-center space-x-3 bg-white/10 backdrop-blur-sm rounded-xl px-6 py-4 hover:bg-white/20 transition-all duration-300"
+                  className="flex-shrink-0 mx-8 flex items-center space-x-3 bg-white/70 backdrop-blur-sm rounded-xl px-6 py-4 hover:bg-white/90 transition-all duration-300 shadow-md"
                 >
                   <span className="text-2xl">{company.logo}</span>
-                  <span className="text-white font-medium whitespace-nowrap">
+                  <span className="text-gray-800 font-medium whitespace-nowrap">
                     {company.name}
                   </span>
                 </div>
