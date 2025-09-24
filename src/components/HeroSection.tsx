@@ -62,7 +62,7 @@ const HeroSection: React.FC = () => {
                   type="text"
                   value={businessIdea}
                   onChange={(e) => setBusinessIdea(e.target.value)}
-                  placeholder="Business idea in your mind?"
+                  placeholder="Business idea in your mind? Fine tune here"
                   className="w-full px-6 py-4 text-lg rounded-2xl border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-200 outline-none"
                 />
               </div>
