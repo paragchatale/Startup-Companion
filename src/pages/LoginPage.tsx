@@ -97,3 +97,5 @@ import LoginPage from './pages/LoginPage';
             </button>
           </div>
         </div>
+
+export default LoginPage
