@@ -113,6 +113,10 @@ const DashboardPage: React.FC = () => {
             </div>
             
             <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2 text-gray-700">
+                <FileText className="h-5 w-5" />
+                <span className="font-medium">My Documents</span>
+              </div>
               <span className="text-gray-700 font-medium hidden sm:block">
                 Welcome back, {profileData.name}!
               </span>
@@ -229,7 +233,6 @@ const DashboardPage: React.FC = () => {
           <div 
             className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30 p-4 mb-6 cursor-pointer hover:shadow-2xl transition-all duration-300"
             onClick={handleChatClick}
-            onMouseEnter={() => setShowChatPopup(true)}
           >
             <div className="flex items-center justify-center">
               <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-2 rounded-lg mr-3">
