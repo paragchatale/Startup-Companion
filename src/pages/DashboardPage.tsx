@@ -110,13 +110,13 @@ const DashboardPage: React.FC = () => {
                 <FileText className="h-5 w-5" />
                 <span className="font-medium">My Documents</span>
               </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2 text-gray-700">
                 <FileText className="h-5 w-5" />
                 <span className="font-medium">My Documents</span>
               </div>
+            </div>
+            
+            <div className="flex items-center space-x-4">
               <span className="text-gray-700 font-medium hidden sm:block">
                 Welcome back, {profileData.name}!
               </span>
@@ -305,7 +305,7 @@ const DashboardPage: React.FC = () => {
                           ? 'bg-blue-600 text-white' 
                           : 'bg-white text-gray-800 shadow-sm'
                       }`}>
-                        {chat.message}
+                        <p className="text-gray-600 text-sm leading-relaxed">{service.description}</p>
                       </div>
                     </div>
                   ))}
