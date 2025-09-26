@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../components/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { User, CreditCard as Edit3, MessageCircle, Mic, Scale, Search, DollarSign, Palette, Bell, LogOut, Send, CheckCircle, Circle } from 'lucide-react';
+import { User, CreditCard as Edit3, MessageCircle, Mic, Scale, Search, DollarSign, Palette, Bell, LogOut, Send, CheckCircle, Circle, FileText } from 'lucide-react';
 
 const DashboardPage: React.FC = () => {
   const { user, signOut } = useAuth();
@@ -9,6 +9,7 @@ const DashboardPage: React.FC = () => {
   const [chatMessage, setChatMessage] = useState('');
   const [chatHistory, setChatHistory] = useState<Array<{type: 'user' | 'bot', message: string}>>([]);
   const [showEditProfile, setShowEditProfile] = useState(false);
+  const [showChatPopup, setShowChatPopup] = useState(false);
   const [profileData, setProfileData] = useState({
     name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User',
     designation: 'Entrepreneur',
@@ -89,6 +90,10 @@ const DashboardPage: React.FC = () => {
     navigate('/');
   };
 
+  const handleChatClick = () => {
+    setShowChatPopup(true);
+  };
+
   if (!user) return null;
 
   return (
@@ -97,10 +102,14 @@ const DashboardPage: React.FC = () => {
       <header className="bg-white/90 backdrop-blur-sm shadow-lg border-b border-white/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-6">
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Dashboard
               </h1>
+              <div className="flex items-center space-x-2 text-gray-700">
+                <FileText className="h-5 w-5" />
+                <span className="font-medium">My Documents</span>
+              </div>
             </div>
             
             <div className="flex items-center space-x-4">
@@ -124,11 +133,11 @@ const DashboardPage: React.FC = () => {
 
       <div className="flex h-[calc(100vh-4rem)]">
         {/* Left Sidebar - User Profile & Progress */}
-        <aside className="w-80 bg-white/90 backdrop-blur-sm shadow-xl border-r border-white/30 p-6 overflow-y-auto">
+        <aside className="w-80 bg-white/90 backdrop-blur-sm shadow-xl border-r border-white/30 p-6 flex flex-col">
           {/* Profile Section */}
-          <div className="text-center mb-8">
-            <div className="relative mx-auto mb-4">
-              <div className="w-20 h-20 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white text-xl font-bold mx-auto">
+          <div className="text-center mb-6">
+            <div className="relative mx-auto mb-3">
+              <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white text-lg font-bold mx-auto">
                 {profileData.avatar ? (
                   <img src={profileData.avatar} alt="Profile" className="w-full h-full rounded-full object-cover" />
                 ) : (
@@ -138,7 +147,7 @@ const DashboardPage: React.FC = () => {
             </div>
             
             <h3 className="text-lg font-semibold text-gray-900 mb-1">{profileData.name}</h3>
-            <p className="text-gray-600 mb-4 text-sm">{profileData.designation}</p>
+            <p className="text-gray-600 mb-3 text-sm">{profileData.designation}</p>
             
             <button
               onClick={() => setShowEditProfile(true)}
@@ -150,17 +159,17 @@ const DashboardPage: React.FC = () => {
           </div>
 
           {/* Innovative Progress Section */}
-          <div className="mb-6">
+          <div className="flex-1">
             <h4 className="font-semibold text-gray-900 mb-4 text-center">Startup Journey</h4>
             
             {/* Overall Progress Ring */}
             <div className="relative mb-6">
-              <div className="w-32 h-32 mx-auto">
-                <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100">
+              <div className="w-28 h-28 mx-auto">
+                <svg className="w-28 h-28 transform -rotate-90" viewBox="0 0 100 100">
                   <circle
                     cx="50"
                     cy="50"
-                    r="40"
+                    r="35"
                     stroke="currentColor"
                     strokeWidth="6"
                     fill="transparent"
@@ -169,12 +178,12 @@ const DashboardPage: React.FC = () => {
                   <circle
                     cx="50"
                     cy="50"
-                    r="40"
+                    r="35"
                     stroke="url(#gradient)"
                     strokeWidth="6"
                     fill="transparent"
-                    strokeDasharray={`${2 * Math.PI * 40}`}
-                    strokeDashoffset={`${2 * Math.PI * 40 * (1 - overallProgress / 100)}`}
+                    strokeDasharray={`${2 * Math.PI * 35}`}
+                    strokeDashoffset={`${2 * Math.PI * 35 * (1 - overallProgress / 100)}`}
                     className="transition-all duration-2000 ease-out"
                     strokeLinecap="round"
                   />
@@ -187,7 +196,7 @@ const DashboardPage: React.FC = () => {
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-900">{Math.round(overallProgress)}%</div>
+                    <div className="text-xl font-bold text-gray-900">{Math.round(overallProgress)}%</div>
                     <div className="text-xs text-gray-600">Complete</div>
                   </div>
                 </div>
@@ -215,89 +224,114 @@ const DashboardPage: React.FC = () => {
         </aside>
 
         {/* Main Content Area */}
-        <main className="flex-1 p-6 overflow-hidden">
-          <div className="h-full flex flex-col space-y-6">
-            {/* Chatbot Section */}
-            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30 p-6 flex-shrink-0">
-              <div className="flex items-center mb-4">
+        <main className="flex-1 p-6 flex flex-col">
+          {/* Compact Chatbot Section */}
+          <div 
+            className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30 p-4 mb-6 cursor-pointer hover:shadow-2xl transition-all duration-300"
+            onClick={handleChatClick}
+            onMouseEnter={() => setShowChatPopup(true)}
+          >
+            <div className="flex items-center justify-center">
+              <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-2 rounded-lg mr-3">
+                <MessageCircle className="h-5 w-5 text-white" />
+              </div>
+              <h2 className="text-lg font-semibold text-gray-900">StartupBot</h2>
+              <span className="ml-2 text-sm text-gray-500">- Click to chat</span>
+            </div>
+          </div>
+
+          {/* Service Cards Grid - 2x2 Layout */}
+          <div className="flex-1 grid grid-cols-2 gap-4">
+            {serviceCards.map((service, index) => {
+              const IconComponent = service.icon;
+              return (
+                <div
+                  key={index}
+                  className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30 p-4 hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between"
+                  onClick={() => handleServiceClick(service.path)}
+                >
+                  <div className="flex items-start space-x-3 mb-3">
+                    <div className={`p-2 rounded-xl bg-gradient-to-r ${service.gradient} flex-shrink-0`}>
+                      <IconComponent className="h-5 w-5 text-white" />
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base font-semibold text-gray-900 mb-1">{service.title}</h3>
+                      <p className="text-gray-600 text-xs leading-relaxed">{service.description}</p>
+                    </div>
+                  </div>
+                  
+                  <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-3 py-2 rounded-full text-xs font-medium hover:shadow-lg transition-all duration-200 self-start">
+                    Chat with Expert
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </main>
+      </div>
+
+      {/* Chat Popup Modal */}
+      {showChatPopup && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-96 flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
                 <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-2 rounded-lg mr-3">
                   <MessageCircle className="h-6 w-6 text-white" />
                 </div>
                 <h2 className="text-xl font-semibold text-gray-900">StartupBot</h2>
               </div>
-              
-              <div className="bg-gray-50 rounded-xl p-4 h-24 overflow-y-auto mb-4">
-                {chatHistory.length === 0 ? (
-                  <p className="text-gray-500 text-center text-sm">Ask anything about your startup journey...</p>
-                ) : (
-                  <div className="space-y-2">
-                    {chatHistory.map((chat, index) => (
-                      <div key={index} className={`flex ${chat.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-xs px-3 py-2 rounded-lg text-xs ${
-                          chat.type === 'user' 
-                            ? 'bg-blue-600 text-white' 
-                            : 'bg-white text-gray-800 shadow-sm'
-                        }`}>
-                          {chat.message}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              
-              <div className="flex space-x-2">
-                <input
-                  type="text"
-                  value={chatMessage}
-                  onChange={(e) => setChatMessage(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                  placeholder="Type your message..."
-                  className="flex-1 px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                />
-                <button className="p-2 text-gray-600 hover:text-blue-600 transition-colors">
-                  <Mic className="h-5 w-5" />
-                </button>
-                <button
-                  onClick={handleSendMessage}
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-2 rounded-xl hover:shadow-lg transition-all duration-200"
-                >
-                  <Send className="h-5 w-5" />
-                </button>
-              </div>
+              <button
+                onClick={() => setShowChatPopup(false)}
+                className="text-gray-400 hover:text-gray-600 text-xl"
+              >
+                ×
+              </button>
             </div>
-
-            {/* Service Cards Grid */}
-            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 overflow-hidden">
-              {serviceCards.map((service, index) => {
-                const IconComponent = service.icon;
-                return (
-                  <div
-                    key={index}
-                    className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30 p-6 hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between"
-                    onClick={() => handleServiceClick(service.path)}
-                  >
-                    <div className="flex items-start space-x-4">
-                      <div className={`p-3 rounded-xl bg-gradient-to-r ${service.gradient} flex-shrink-0`}>
-                        <IconComponent className="h-6 w-6 text-white" />
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">{service.title}</h3>
-                        <p className="text-gray-600 mb-4 text-sm leading-relaxed">{service.description}</p>
+            
+            <div className="bg-gray-50 rounded-xl p-4 flex-1 overflow-y-auto mb-4">
+              {chatHistory.length === 0 ? (
+                <p className="text-gray-500 text-center text-sm">Ask anything about your startup journey...</p>
+              ) : (
+                <div className="space-y-2">
+                  {chatHistory.map((chat, index) => (
+                    <div key={index} className={`flex ${chat.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-xs px-3 py-2 rounded-lg text-xs ${
+                        chat.type === 'user' 
+                          ? 'bg-blue-600 text-white' 
+                          : 'bg-white text-gray-800 shadow-sm'
+                      }`}>
+                        {chat.message}
                       </div>
                     </div>
-                    
-                    <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:shadow-lg transition-all duration-200 self-start">
-                      Chat with Expert
-                    </button>
-                  </div>
-                );
-              })}
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            <div className="flex space-x-2">
+              <input
+                type="text"
+                value={chatMessage}
+                onChange={(e) => setChatMessage(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                placeholder="Type your message..."
+                className="flex-1 px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              />
+              <button className="p-2 text-gray-600 hover:text-blue-600 transition-colors">
+                <Mic className="h-5 w-5" />
+              </button>
+              <button
+                onClick={handleSendMessage}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-2 rounded-xl hover:shadow-lg transition-all duration-200"
+              >
+                <Send className="h-5 w-5" />
+              </button>
             </div>
           </div>
-        </main>
-      </div>
+        </div>
+      )}
 
       {/* Edit Profile Modal */}
       {showEditProfile && (
