@@ -17,11 +17,11 @@ const DashboardPage: React.FC = () => {
 
   // Business Journey Progress Data
   const [journeyProgress] = useState([
-    { milestone: 'Idea Validation', progress: 75, completed: false },
-    { milestone: 'Legal Setup', progress: 45, completed: false },
-    { milestone: 'Financial Planning', progress: 30, completed: false },
-    { milestone: 'Branding', progress: 20, completed: false },
-    { milestone: 'Go-to-Market', progress: 10, completed: false }
+    { milestone: 'Idea Validation', progress: 75, completed: false, color: 'from-blue-500 to-cyan-500' },
+    { milestone: 'Legal Setup', progress: 45, completed: false, color: 'from-purple-500 to-pink-500' },
+    { milestone: 'Financial Planning', progress: 30, completed: false, color: 'from-green-500 to-teal-500' },
+    { milestone: 'Branding', progress: 20, completed: false, color: 'from-orange-500 to-red-500' },
+    { milestone: 'Go-to-Market', progress: 10, completed: false, color: 'from-indigo-500 to-purple-500' }
   ]);
 
   const overallProgress = journeyProgress.reduce((acc, item) => acc + item.progress, 0) / journeyProgress.length;
@@ -92,7 +92,7 @@ const DashboardPage: React.FC = () => {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+    <div className="h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 overflow-hidden">
       {/* Top Navigation */}
       <header className="bg-white/90 backdrop-blur-sm shadow-lg border-b border-white/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -122,13 +122,13 @@ const DashboardPage: React.FC = () => {
         </div>
       </header>
 
-      <div className="flex">
-        {/* Left Sidebar - User Profile Panel */}
-        <aside className="w-80 bg-white/90 backdrop-blur-sm shadow-xl border-r border-white/30 min-h-screen p-6">
+      <div className="flex h-[calc(100vh-4rem)]">
+        {/* Left Sidebar - User Profile & Progress */}
+        <aside className="w-80 bg-white/90 backdrop-blur-sm shadow-xl border-r border-white/30 p-6 overflow-y-auto">
+          {/* Profile Section */}
           <div className="text-center mb-8">
-            {/* Profile Picture */}
             <div className="relative mx-auto mb-4">
-              <div className="w-24 h-24 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto">
+              <div className="w-20 h-20 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white text-xl font-bold mx-auto">
                 {profileData.avatar ? (
                   <img src={profileData.avatar} alt="Profile" className="w-full h-full rounded-full object-cover" />
                 ) : (
@@ -137,170 +137,164 @@ const DashboardPage: React.FC = () => {
               </div>
             </div>
             
-            {/* User Info */}
-            <h3 className="text-xl font-semibold text-gray-900 mb-1">{profileData.name}</h3>
-            <p className="text-gray-600 mb-4">{profileData.designation}</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">{profileData.name}</h3>
+            <p className="text-gray-600 mb-4 text-sm">{profileData.designation}</p>
             
-            {/* Edit Profile Button */}
             <button
               onClick={() => setShowEditProfile(true)}
-              className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-2 rounded-full hover:shadow-lg transition-all duration-200 mx-auto"
+              className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-3 py-2 rounded-full hover:shadow-lg transition-all duration-200 mx-auto text-sm"
             >
               <Edit3 className="h-4 w-4" />
               <span>Edit Profile</span>
             </button>
           </div>
 
-          {/* Progress Overview */}
-          <div className="bg-gradient-to-r from-blue-100 to-purple-100 rounded-2xl p-4 mb-6">
-            <h4 className="font-semibold text-gray-900 mb-3">Journey Progress</h4>
-            <div className="relative">
-              <div className="w-full bg-gray-200 rounded-full h-3">
-                <div 
-                  className="bg-gradient-to-r from-blue-600 to-purple-600 h-3 rounded-full transition-all duration-1000 ease-out"
-                  style={{ width: `${overallProgress}%` }}
-                ></div>
-              </div>
-              <span className="text-sm font-medium text-gray-700 mt-2 block">
-                {Math.round(overallProgress)}% Complete
-              </span>
-            </div>
-          </div>
-        </aside>
-
-        {/* Main Content Area */}
-        <main className="flex-1 p-6">
-          {/* Top-Center Section: Chatbot */}
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30 p-6 mb-8">
-            <div className="flex items-center mb-4">
-              <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-2 rounded-lg mr-3">
-                <MessageCircle className="h-6 w-6 text-white" />
-              </div>
-              <h2 className="text-xl font-semibold text-gray-900">StartupBot</h2>
-            </div>
+          {/* Innovative Progress Section */}
+          <div className="mb-6">
+            <h4 className="font-semibold text-gray-900 mb-4 text-center">Startup Journey</h4>
             
-            {/* Chat History */}
-            <div className="bg-gray-50 rounded-xl p-4 h-32 overflow-y-auto mb-4">
-              {chatHistory.length === 0 ? (
-                <p className="text-gray-500 text-center">Ask anything about your startup journey...</p>
-              ) : (
-                <div className="space-y-2">
-                  {chatHistory.map((chat, index) => (
-                    <div key={index} className={`flex ${chat.type === 'user' ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-xs px-3 py-2 rounded-lg text-sm ${
-                        chat.type === 'user' 
-                          ? 'bg-blue-600 text-white' 
-                          : 'bg-white text-gray-800 shadow-sm'
-                      }`}>
-                        {chat.message}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            
-            {/* Chat Input */}
-            <div className="flex space-x-2">
-              <input
-                type="text"
-                value={chatMessage}
-                onChange={(e) => setChatMessage(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                placeholder="Type your message..."
-                className="flex-1 px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <button className="p-2 text-gray-600 hover:text-blue-600 transition-colors">
-                <Mic className="h-5 w-5" />
-              </button>
-              <button
-                onClick={handleSendMessage}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-2 rounded-xl hover:shadow-lg transition-all duration-200"
-              >
-                <Send className="h-5 w-5" />
-              </button>
-            </div>
-          </div>
-
-          {/* Middle Section: Business Journey Progress */}
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30 p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">Your Startup Journey</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-              {journeyProgress.map((milestone, index) => (
-                <div key={index} className="text-center">
-                  <div className="relative mb-4">
-                    {/* Circular Progress */}
-                    <div className="relative w-20 h-20 mx-auto">
-                      <svg className="w-20 h-20 transform -rotate-90" viewBox="0 0 100 100">
-                        <circle
-                          cx="50"
-                          cy="50"
-                          r="40"
-                          stroke="currentColor"
-                          strokeWidth="8"
-                          fill="transparent"
-                          className="text-gray-200"
-                        />
-                        <circle
-                          cx="50"
-                          cy="50"
-                          r="40"
-                          stroke="currentColor"
-                          strokeWidth="8"
-                          fill="transparent"
-                          strokeDasharray={`${2 * Math.PI * 40}`}
-                          strokeDashoffset={`${2 * Math.PI * 40 * (1 - milestone.progress / 100)}`}
-                          className="text-blue-600 transition-all duration-1000 ease-out"
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-sm font-bold text-gray-900">{milestone.progress}%</span>
-                      </div>
-                    </div>
+            {/* Overall Progress Ring */}
+            <div className="relative mb-6">
+              <div className="w-32 h-32 mx-auto">
+                <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100">
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="40"
+                    stroke="currentColor"
+                    strokeWidth="6"
+                    fill="transparent"
+                    className="text-gray-200"
+                  />
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="40"
+                    stroke="url(#gradient)"
+                    strokeWidth="6"
+                    fill="transparent"
+                    strokeDasharray={`${2 * Math.PI * 40}`}
+                    strokeDashoffset={`${2 * Math.PI * 40 * (1 - overallProgress / 100)}`}
+                    className="transition-all duration-2000 ease-out"
+                    strokeLinecap="round"
+                  />
+                  <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#3B82F6" />
+                      <stop offset="100%" stopColor="#8B5CF6" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-gray-900">{Math.round(overallProgress)}%</div>
+                    <div className="text-xs text-gray-600">Complete</div>
                   </div>
-                  
-                  <h3 className="font-semibold text-gray-900 text-sm mb-2">{milestone.milestone}</h3>
-                  <div className="flex justify-center">
-                    {milestone.completed ? (
-                      <CheckCircle className="h-5 w-5 text-green-500" />
-                    ) : (
-                      <Circle className="h-5 w-5 text-gray-400" />
-                    )}
+                </div>
+              </div>
+            </div>
+
+            {/* Milestone Progress Bars */}
+            <div className="space-y-3">
+              {journeyProgress.map((milestone, index) => (
+                <div key={index} className="relative">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-xs font-medium text-gray-700">{milestone.milestone}</span>
+                    <span className="text-xs text-gray-500">{milestone.progress}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className={`bg-gradient-to-r ${milestone.color} h-2 rounded-full transition-all duration-1000 ease-out`}
+                      style={{ width: `${milestone.progress}%` }}
+                    ></div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
+        </aside>
 
-          {/* Bottom Section: Service Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {serviceCards.map((service, index) => {
-              const IconComponent = service.icon;
-              return (
-                <div
-                  key={index}
-                  className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30 p-6 hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 cursor-pointer"
-                  onClick={() => handleServiceClick(service.path)}
+        {/* Main Content Area */}
+        <main className="flex-1 p-6 overflow-hidden">
+          <div className="h-full flex flex-col space-y-6">
+            {/* Chatbot Section */}
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30 p-6 flex-shrink-0">
+              <div className="flex items-center mb-4">
+                <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-2 rounded-lg mr-3">
+                  <MessageCircle className="h-6 w-6 text-white" />
+                </div>
+                <h2 className="text-xl font-semibold text-gray-900">StartupBot</h2>
+              </div>
+              
+              <div className="bg-gray-50 rounded-xl p-4 h-24 overflow-y-auto mb-4">
+                {chatHistory.length === 0 ? (
+                  <p className="text-gray-500 text-center text-sm">Ask anything about your startup journey...</p>
+                ) : (
+                  <div className="space-y-2">
+                    {chatHistory.map((chat, index) => (
+                      <div key={index} className={`flex ${chat.type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-xs px-3 py-2 rounded-lg text-xs ${
+                          chat.type === 'user' 
+                            ? 'bg-blue-600 text-white' 
+                            : 'bg-white text-gray-800 shadow-sm'
+                        }`}>
+                          {chat.message}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex space-x-2">
+                <input
+                  type="text"
+                  value={chatMessage}
+                  onChange={(e) => setChatMessage(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                  placeholder="Type your message..."
+                  className="flex-1 px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                />
+                <button className="p-2 text-gray-600 hover:text-blue-600 transition-colors">
+                  <Mic className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={handleSendMessage}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-2 rounded-xl hover:shadow-lg transition-all duration-200"
                 >
-                  <div className="flex items-start space-x-4">
-                    <div className={`p-3 rounded-xl bg-gradient-to-r ${service.gradient}`}>
-                      <IconComponent className="h-6 w-6 text-white" />
+                  <Send className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Service Cards Grid */}
+            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 overflow-hidden">
+              {serviceCards.map((service, index) => {
+                const IconComponent = service.icon;
+                return (
+                  <div
+                    key={index}
+                    className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/30 p-6 hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col justify-between"
+                    onClick={() => handleServiceClick(service.path)}
+                  >
+                    <div className="flex items-start space-x-4">
+                      <div className={`p-3 rounded-xl bg-gradient-to-r ${service.gradient} flex-shrink-0`}>
+                        <IconComponent className="h-6 w-6 text-white" />
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">{service.title}</h3>
+                        <p className="text-gray-600 mb-4 text-sm leading-relaxed">{service.description}</p>
+                      </div>
                     </div>
                     
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">{service.title}</h3>
-                      <p className="text-gray-600 mb-4">{service.description}</p>
-                      
-                      <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:shadow-lg transition-all duration-200">
-                        Chat with Expert
-                      </button>
-                    </div>
+                    <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:shadow-lg transition-all duration-200 self-start">
+                      Chat with Expert
+                    </button>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </main>
       </div>
