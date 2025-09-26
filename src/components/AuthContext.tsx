@@ -41,7 +41,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      const { error } = await supabase.auth.signOut();
+      
+      // If session not found, user is already logged out
+      if (error && error.message.includes('session_not_found')) {
+        setUser(null);
+        return;
+      }
+      
+      // Handle other potential errors
+      if (error) {
+        console.warn('Sign out error:', error.message);
+        // Still set user to null to ensure UI reflects logged out state
+        setUser(null);
+      }
+    } catch (err) {
+      console.warn('Sign out failed:', err);
+      // Ensure user state is cleared even if sign out fails
+      setUser(null);
+    }
   };
 
   const value = {
