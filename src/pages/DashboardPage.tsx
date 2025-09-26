@@ -106,14 +106,10 @@ const DashboardPage: React.FC = () => {
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Dashboard
               </h1>
-              <div className="flex items-center space-x-2 text-gray-700">
+              <button className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors duration-200 bg-white/50 hover:bg-white/80 px-4 py-2 rounded-lg border border-gray-200 hover:border-blue-300">
                 <FileText className="h-5 w-5" />
                 <span className="font-medium">My Documents</span>
-              </div>
-              <div className="flex items-center space-x-2 text-gray-700">
-                <FileText className="h-5 w-5" />
-                <span className="font-medium">My Documents</span>
-              </div>
+              </button>
             </div>
             
             <div className="flex items-center space-x-4">
