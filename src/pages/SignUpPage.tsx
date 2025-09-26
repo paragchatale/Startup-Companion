@@ -61,9 +61,8 @@ const SignUpPage: React.FC = () => {
       if (error) {
         setError(error.message);
       } else {
-        // Sign up successful, redirect to login with success message
-        alert('Account created successfully! Please check your email to verify your account.');
-        navigate('/login');
+        // Sign up successful, redirect to dashboard
+        navigate('/dashboard');
       }
     } catch (err) {
       setError('An unexpected error occurred');
