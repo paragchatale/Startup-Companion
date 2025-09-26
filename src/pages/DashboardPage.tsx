@@ -1,21 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../components/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { 
-  User, 
-  Edit3, 
-  MessageCircle, 
-  Mic, 
-  Scale, 
-  Search, 
-  DollarSign, 
-  Palette,
-  Bell,
-  LogOut,
-  Send,
-  CheckCircle,
-  Circle
-} from 'lucide-react';
+import { User, CreditCard as Edit3, MessageCircle, Mic, Scale, Search, DollarSign, Palette, Bell, LogOut, Send, CheckCircle, Circle } from 'lucide-react';
 
 const DashboardPage: React.FC = () => {
   const { user, signOut } = useAuth();
