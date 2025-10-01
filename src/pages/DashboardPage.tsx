@@ -338,9 +338,13 @@ const DashboardPage: React.FC = () => {
             </div>
             
             <div className="flex items-center space-x-4">
-              <span className="text-gray-700 font-medium hidden sm:block">
-                Welcome back, {profileData.name}!
-              </span>
+              <button 
+                onClick={() => navigate('/my-documents')}
+                className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors duration-200 bg-white/50 hover:bg-white/80 px-4 py-2 rounded-lg border border-gray-200 hover:border-blue-300"
+              >
+                <FileText className="h-5 w-5" />
+                <span className="font-medium">My Documents</span>
+              </button>
               <button className="p-2 text-gray-600 hover:text-blue-600 transition-colors">
                 <Bell className="h-5 w-5" />
               </button>
