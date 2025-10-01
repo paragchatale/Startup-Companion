@@ -10,7 +10,7 @@ const corsHeaders = {
 const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY');
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 // Select model (change as desired)
-const MODEL_NAME = "openai/deepseek-v3.2-exp";
+const MODEL_NAME = "openai/gpt-3.5-turbo";
 
 // System prompt tailored to your requirements
 const SYSTEM_PROMPT = `
