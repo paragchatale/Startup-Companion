@@ -13,6 +13,8 @@ const DashboardPage: React.FC = () => {
   const [showDocuments, setShowDocuments] = useState(false);
   const [documents, setDocuments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const [profileData, setProfileData] = useState({
     name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User',
     designation: 'Entrepreneur',
@@ -102,7 +104,12 @@ const DashboardPage: React.FC = () => {
       }
 
       const data = await response.json();
-      return data.reply || "I couldn't process your request, please try again.";
+      const reply = data.reply || "I couldn't process your request, please try again.";
+      
+      // Speak the response
+      speakText(reply);
+      
+      return reply;
     } catch (error) {
       console.error('Error calling startup chat bot:', error);
       return "Sorry, I'm having trouble connecting right now. Please try again later.";
@@ -130,6 +137,114 @@ const DashboardPage: React.FC = () => {
           timestamp: new Date()
         }]);
       });
+    }
+  };
+
+  // Text-to-Speech function
+  const speakText = (text: string) => {
+    if ('speechSynthesis' in window) {
+      // Stop any ongoing speech
+      window.speechSynthesis.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.9;
+      utterance.pitch = 1;
+      utterance.volume = 0.8;
+      
+      utterance.onstart = () => setIsSpeaking(true);
+      utterance.onend = () => setIsSpeaking(false);
+      utterance.onerror = () => setIsSpeaking(false);
+      
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  // Speech-to-Text function
+  const startListening = () => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+      const recognition = new SpeechRecognition();
+      
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+      
+      recognition.onstart = () => {
+        setIsListening(true);
+      };
+      
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setChatMessage(transcript);
+        setIsListening(false);
+      };
+      
+      recognition.onerror = () => {
+        setIsListening(false);
+        alert('Speech recognition error. Please try again.');
+      };
+      
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+      
+      recognition.start();
+    } else {
+      alert('Speech recognition is not supported in your browser.');
+    }
+  };
+
+  // Generate and save PDF
+  const generateAndSavePDF = async () => {
+    if (chatHistory.length === 0) {
+      alert('No conversation to save!');
+      return;
+    }
+
+    try {
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/startup-chat`;
+      const headers = {
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+      };
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ 
+          message: '',
+          generatePDF: true,
+          conversation: chatHistory
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.type === 'pdf') {
+        // Save to Supabase documents table
+        const { error } = await supabase
+          .from('documents')
+          .insert([{
+            title: data.pdfData.title,
+            content: data.pdfData.content,
+            user_id: user?.id
+          }]);
+
+        if (error) throw error;
+        
+        await loadDocuments();
+        alert('Conversation saved to My Documents!');
+        
+        // Clear chat after saving
+        setChatHistory([]);
+      }
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Error saving document. Please try again.');
     }
   };
 
@@ -313,6 +428,24 @@ const DashboardPage: React.FC = () => {
                   </div>
                 </div>
               ))}
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="bg-white text-gray-800 shadow-sm px-3 py-2 rounded-lg text-xs">
+                    <div className="flex items-center space-x-2">
+                      <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+                      <span>Thinking...</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {isSpeaking && (
+                <div className="flex justify-center">
+                  <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span>Speaking...</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </aside>
@@ -410,18 +543,41 @@ const DashboardPage: React.FC = () => {
                 onChange={(e) => setChatMessage(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                 placeholder="Type your message..."
-                className="flex-1 px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                className="flex-1 px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm disabled:opacity-50"
+                disabled={isLoading || isListening}
               />
-              <button className="p-2 text-gray-600 hover:text-blue-600 transition-colors">
-                <Mic className="h-5 w-5" />
+              <button 
+                onClick={startListening}
+                disabled={isLoading || isListening}
+                className={`p-2 transition-colors rounded-xl ${
+                  isListening 
+                    ? 'bg-red-500 text-white animate-pulse' 
+                    : 'text-gray-600 hover:text-blue-600 hover:bg-gray-100'
+                } disabled:opacity-50`}
+              >
+                <Mic className={`h-5 w-5 ${isListening ? 'animate-pulse' : ''}`} />
               </button>
               <button
                 onClick={handleSendMessage}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-2 rounded-xl hover:shadow-lg transition-all duration-200"
+                disabled={isLoading || isListening}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-2 rounded-xl hover:shadow-lg transition-all duration-200 disabled:opacity-50"
               >
                 <Send className="h-5 w-5" />
               </button>
             </div>
+            
+            {/* Save as PDF button */}
+            {chatHistory.length > 0 && (
+              <div className="mt-3 flex justify-center">
+                <button
+                  onClick={generateAndSavePDF}
+                  className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:shadow-lg transition-all duration-200 flex items-center space-x-2"
+                >
+                  <FileText className="h-4 w-4" />
+                  <span>Save as Document</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

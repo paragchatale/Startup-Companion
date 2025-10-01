@@ -6,6 +6,19 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
+// Simple PDF generation function
+function generatePDF(conversation: any[]) {
+  const content = conversation.map(msg => 
+    `${msg.type.toUpperCase()}: ${msg.message}\n\n`
+  ).join('');
+  
+  return {
+    title: `Startup Consultation - ${new Date().toLocaleDateString()}`,
+    content: content,
+    timestamp: new Date().toISOString()
+  };
+}
+
 // Use environment variable for security
 const OPENROUTER_API_KEY = Deno.env.get('OPENROUTER_API_KEY');
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
@@ -66,12 +79,28 @@ serve(async (req) => {
     // Parse user input (expects `{ message: string }` JSON)
     const body = await req.json();
     const userMessage = body.message || "";
+    const generatePDFRequest = body.generatePDF || false;
+    const conversation = body.conversation || [];
 
     if (!userMessage.trim()) {
       return new Response(
         JSON.stringify({ error: "Message is required" }),
         { 
           status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        }
+      );
+    }
+
+    // Handle PDF generation request
+    if (generatePDFRequest && conversation.length > 0) {
+      const pdfData = generatePDF(conversation);
+      return new Response(
+        JSON.stringify({ 
+          type: 'pdf',
+          pdfData: pdfData
+        }),
+        { 
           headers: { ...corsHeaders, "Content-Type": "application/json" }
         }
       );
@@ -124,7 +153,10 @@ serve(async (req) => {
     const replyContent = result.choices?.[0]?.message?.content || "I couldn't process your request, please try again.";
 
     return new Response(
-      JSON.stringify({ reply: replyContent }),
+      JSON.stringify({ 
+        type: 'message',
+        reply: replyContent 
+      }),
       { 
         headers: { ...corsHeaders, "Content-Type": "application/json" }
       }
