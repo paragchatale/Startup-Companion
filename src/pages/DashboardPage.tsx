@@ -257,7 +257,7 @@ const DashboardPage: React.FC = () => {
     }
   };
 
-  const generatePDF = async (conversation: ChatMessage[]) => {
+  const generatePDF = async (conversation: any[]) => {
     try {
       // Create a simple text-based document content
       const content = conversation.map(msg => 
@@ -284,7 +284,7 @@ const DashboardPage: React.FC = () => {
     }
   };
 
-  const downloadDocument = (doc: Document) => {
+  const downloadDocument = (doc: any) => {
     const blob = new Blob([doc.content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -367,22 +367,18 @@ const DashboardPage: React.FC = () => {
                   <img src={profileData.avatar} alt="Profile" className="w-full h-full rounded-full object-cover" />
                 ) : (
                   profileData.name.charAt(0).toUpperCase()
-            <div className="flex items-center space-x-3">
-              <button 
-                onClick={() => navigate('/my-documents')}
-                className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors duration-200 bg-white/50 hover:bg-white/80 px-4 py-2 rounded-lg border border-gray-200 hover:border-blue-300"
-              >
-                <FileText className="h-5 w-5" />
-                <span className="font-medium">My Documents</span>
-              </button>
-              <button 
-                onClick={() => navigate('/my-documents')}
-                className="flex items-center space-x-2 text-gray-700 hover:text-purple-600 transition-colors duration-200 bg-white/50 hover:bg-white/80 px-4 py-2 rounded-lg border border-gray-200 hover:border-purple-300"
-              >
-                <FileText className="h-5 w-5" />
-                <span className="font-medium">My Biz Doc</span>
-              </button>
+                )}
+              </div>
             </div>
+            <h3 className="text-lg font-semibold text-gray-900">{profileData.name}</h3>
+            <p className="text-gray-600 text-sm">{profileData.designation}</p>
+            <button
+              onClick={() => setShowEditProfile(true)}
+              className="mt-2 text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center justify-center space-x-1"
+            >
+              <Edit3 className="h-3 w-3" />
+              <span>Edit Profile</span>
+            </button>
           </div>
 
           {/* Innovative Progress Section */}
