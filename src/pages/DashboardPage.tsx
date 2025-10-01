@@ -1,21 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../components/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { User, CreditCard as Edit3, MessageCircle, Mic, Scale, Search, DollarSign, Palette, Bell, LogOut, Send, CheckCircle, Circle, FileText, X, Download } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-
-interface ChatMessage {
-  type: 'user' | 'bot';
-  message: string;
-  timestamp: Date;
-}
-
-interface Document {
-  id: string;
-  title: string;
-  content: string;
-  created_at: string;
-}
+import { User, CreditCard as Edit3, MessageCircle, Mic, Scale, Search, DollarSign, Palette, Bell, LogOut, Send, CheckCircle, Circle, FileText } from 'lucide-react';
 
 const DashboardPage: React.FC = () => {
   const { user, signOut } = useAuth();
@@ -25,7 +11,7 @@ const DashboardPage: React.FC = () => {
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showChatPopup, setShowChatPopup] = useState(false);
   const [showDocuments, setShowDocuments] = useState(false);
-  const [documents, setDocuments] = useState<Document[]>([]);
+  const [documents, setDocuments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [profileData, setProfileData] = useState({
     name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User',
@@ -409,37 +395,13 @@ const DashboardPage: React.FC = () => {
                           ? 'bg-blue-600 text-white' 
                           : 'bg-white text-gray-800 shadow-sm'
                       }`}>
-                        <p className="leading-relaxed">{chat.message}</p>
+                        {chat.message}
                       </div>
                     </div>
                   ))}
-                  {isLoading && (
-                    <div className="flex justify-start">
-                      <div className="bg-white text-gray-800 shadow-sm px-3 py-2 rounded-lg text-xs">
-                        <p className="leading-relaxed">Thinking...</p>
-                      </div>
-                    </div>
-                  )}
                 </div>
               )}
             </div>
-            
-            {chatHistory.length > 0 && (
-              <div className="flex justify-between items-center mb-2">
-                <button
-                  onClick={() => generatePDF(chatHistory)}
-                  className="text-xs bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  Save as Document
-                </button>
-                <button
-                  onClick={() => setChatHistory([])}
-                  className="text-xs text-gray-500 hover:text-gray-700"
-                >
-                  Clear Chat
-                </button>
-              </div>
-            )}
             
             <div className="flex space-x-2">
               <input
@@ -449,65 +411,16 @@ const DashboardPage: React.FC = () => {
                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                 placeholder="Type your message..."
                 className="flex-1 px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                disabled={isLoading}
               />
               <button className="p-2 text-gray-600 hover:text-blue-600 transition-colors">
                 <Mic className="h-5 w-5" />
               </button>
               <button
                 onClick={handleSendMessage}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-2 rounded-xl hover:shadow-lg transition-all duration-200 disabled:opacity-50"
-                disabled={isLoading || !chatMessage.trim()}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-2 rounded-xl hover:shadow-lg transition-all duration-200"
               >
                 <Send className="h-5 w-5" />
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* My Documents Modal */}
-      {showDocuments && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-2xl max-h-96 flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900">My Documents</h2>
-              <button
-                onClick={() => setShowDocuments(false)}
-                className="text-gray-400 hover:text-gray-600 text-xl"
-              >
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-            
-            <div className="flex-1 overflow-y-auto">
-              {documents.length === 0 ? (
-                <div className="text-center py-8">
-                  <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">No documents yet. Start a conversation with StartupBot to generate your first document!</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {documents.map((doc) => (
-                    <div key={doc.id} className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <h3 className="font-medium text-gray-900">{doc.title}</h3>
-                          <p className="text-sm text-gray-500">
-                            Created: {new Date(doc.created_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => downloadDocument(doc)}
-                          className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
-                        >
-                          <Download className="h-5 w-5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
         </div>
