@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
+import { callMainDashboardBot } from '../lib/supabaseHelpers';
 import { 
   Scale, 
   Building2, 
@@ -12,13 +13,17 @@ import {
   FileText, 
   Bot,
   Settings,
-  Star
+  Star,
+  X
 } from 'lucide-react';
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [chatInput, setChatInput] = useState('');
+  const [messages, setMessages] = useState<Array<{role: 'user' | 'assistant', content: string}>>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   const services = [
     {
@@ -63,18 +68,56 @@ const DashboardPage: React.FC = () => {
     navigate(path);
   };
 
-  const handleChatSubmit = (e: React.FormEvent) => {
+  const handleChatSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (chatInput.trim()) {
-      // Handle chat submission
-      console.log('Chat message:', chatInput);
+    if (chatInput.trim() && !isLoading) {
+      const userMessage = chatInput.trim();
       setChatInput('');
+      setIsLoading(true);
+
+      // Add user message to chat
+      const newMessages = [...messages, { role: 'user' as const, content: userMessage }];
+      setMessages(newMessages);
+
+      try {
+        const response = await callMainDashboardBot(userMessage, sessionId || undefined, newMessages);
+        
+        // Add AI response to chat
+        setMessages([...newMessages, { role: 'assistant', content: response.response }]);
+        
+        // Update session ID if it's a new session
+        if (response.sessionId && !sessionId) {
+          setSessionId(response.sessionId);
+        }
+      } catch (error) {
+        console.error('Error sending message:', error);
+        setMessages([...newMessages, { 
+          role: 'assistant', 
+          content: 'Sorry, I encountered an error. Please try again.' 
+        }]);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
   const handleUpdateProfile = () => {
-    // Handle profile update
-    console.log('Update profile clicked');
+    navigate('/user-details');
+  };
+
+  const handleMyBizDoc = () => {
+    navigate('/my-biz-docs');
+  };
+
+  const handleAIResponseDoc = () => {
+    navigate('/ai-response-docs');
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleChatSubmit(e);
+    }
   };
 
   return (
@@ -108,6 +151,7 @@ const DashboardPage: React.FC = () => {
             </h2>
             <p className="text-gray-400 mb-6">Founder</p>
             <button
+              onClick={handleAIResponseDoc}
               onClick={handleUpdateProfile}
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors w-full"
             >
@@ -163,10 +207,42 @@ const DashboardPage: React.FC = () => {
         {/* Main Content */}
         <div className="flex-1 p-8">
           {/* Chat Section */}
-          <div className="bg-slate-800 rounded-2xl p-12 mb-8">
-            <h2 className="text-xl font-medium text-center mb-6 text-gray-300">
-              How can I help you today, {user?.user_metadata?.full_name?.split(' ')[0] || 'Ethan'}?
-            </h2>
+          <div className="bg-slate-800 rounded-2xl p-12">
+            {messages.length === 0 ? (
+              <h2 className="text-xl font-medium text-center mb-6 text-gray-300">
+                How can I help you today, {user?.user_metadata?.full_name?.split(' ')[0] || 'Ethan'}?
+              </h2>
+            ) : (
+              <div className="mb-6 max-h-96 overflow-y-auto space-y-4">
+                {messages.map((message, index) => (
+                  <div
+                    key={index}
+                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div
+                      className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
+                        message.role === 'user'
+                          ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
+                          : 'bg-slate-700 text-gray-100'
+                      }`}
+                    >
+                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    </div>
+                  </div>
+                ))}
+                {isLoading && (
+                  <div className="flex justify-start">
+                    <div className="bg-slate-700 px-4 py-2 rounded-2xl">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
             
             <form onSubmit={handleChatSubmit} className="relative">
               <div className="flex items-center bg-slate-700 rounded-full p-3">
@@ -174,22 +250,37 @@ const DashboardPage: React.FC = () => {
                   type="text"
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
+                  onKeyPress={handleKeyPress}
                   placeholder="Ask me anything..."
                   className="flex-1 bg-transparent px-6 py-4 text-lg text-white placeholder-gray-400 focus:outline-none"
+                  disabled={isLoading}
                 />
                 <div className="flex items-center space-x-2">
                   <button
                     type="button"
-                    className="p-4 bg-blue-600 hover:bg-blue-700 rounded-full transition-colors"
+                    className="p-4 bg-blue-600 hover:bg-blue-700 rounded-full transition-colors disabled:opacity-50"
+                    disabled={isLoading}
                   >
                     <Mic className="h-6 w-6 text-white" />
                   </button>
                   <button
                     type="submit"
-                    className="p-4 bg-blue-600 hover:bg-blue-700 rounded-full transition-colors"
+                    className="p-4 bg-blue-600 hover:bg-blue-700 rounded-full transition-colors disabled:opacity-50"
+                    disabled={isLoading || !chatInput.trim()}
                   >
                     <Send className="h-6 w-6 text-white" />
                   </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default DashboardPage;
                 </div>
               </div>
             </form>

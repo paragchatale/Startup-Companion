@@ -11,6 +11,9 @@ import BrandingMarketingPage from './pages/BrandingMarketingPage';
 import LoginPage from './pages/LoginPage';
 import SignUpPage from './pages/SignUpPage';
 import DashboardPage from './pages/DashboardPage';
+import UserDetailsForm from './components/UserDetailsForm';
+import MyBizDocsPage from './pages/MyBizDocsPage';
+import AIResponseDocsPage from './pages/AIResponseDocsPage';
 
 function App() {
   return (
@@ -28,6 +31,9 @@ function App() {
             <Route path="/branding-marketing" element={<BrandingMarketingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignUpPage />} />
+            <Route path="/user-details" element={<UserDetailsForm />} />
+            <Route path="/my-biz-docs" element={<MyBizDocsPage />} />
+            <Route path="/ai-response-docs" element={<AIResponseDocsPage />} />
           </Routes>
         </div>
       </Router>
