@@ -15,6 +15,8 @@ const IdeationPage: React.FC = () => {
 
   const connectToChatBot = () => {
     setShowChatBot(true);
+    setMessageCount(0); // Reset message count when opening chat
+    setShowSignupPrompt(false); // Reset signup prompt
     if (businessIdea && messages.length === 0) {
       setMessages([
         { role: 'assistant', content: `Hi! I see you want to work on: "${businessIdea}". Let's refine this idea together! What specific aspect would you like to improve?` }
@@ -41,6 +43,7 @@ const IdeationPage: React.FC = () => {
     const newCount = messageCount + 1;
     setMessageCount(newCount);
 
+    // Show signup prompt after 3 user messages
     if (newCount >= 3) {
       setShowSignupPrompt(true);
       setIsLoading(false);
@@ -266,7 +269,7 @@ const IdeationPage: React.FC = () => {
 
         {/* Signup Prompt Modal */}
         {showSignupPrompt && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-60 p-4">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
               <div className="text-center">
                 <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-3 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
@@ -294,7 +297,6 @@ const IdeationPage: React.FC = () => {
                   <button
                     onClick={() => {
                       setShowSignupPrompt(false);
-                      setShowChatBot(false);
                     }}
                     className="w-full text-gray-500 hover:text-gray-700 transition-colors text-sm"
                   >
