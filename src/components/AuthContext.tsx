@@ -52,6 +52,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
+      // If user is already null, no need to call signOut
+      if (!user) {
+        return;
+      }
+      
       const { error } = await supabase.auth.signOut();
       
       // If session not found, user is already logged out
