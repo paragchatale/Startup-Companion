@@ -25,6 +25,7 @@ const DashboardPage: React.FC = () => {
       id: 'legal-advisor',
       title: 'Legal Advisor',
       description: 'Get legal advice',
+      tooltip: 'Navigate company registration, trademarks, and compliance with AI-guided legal help.',
       icon: Scale,
       color: 'text-blue-400',
       path: '/legal-advisor'
@@ -33,6 +34,7 @@ const DashboardPage: React.FC = () => {
       id: 'govt-scheme',
       title: 'Govt Scheme Matching',
       description: 'Find government schemes',
+      tooltip: 'Discover startup grants, incubators, and government schemes tailored to your industry.',
       icon: Building2,
       color: 'text-purple-400',
       path: '/scheme-match-maker'
@@ -41,6 +43,7 @@ const DashboardPage: React.FC = () => {
       id: 'financial-setup',
       title: 'Financial Setup',
       description: 'Setup your finances',
+      tooltip: 'From business accounts to invoicing — get your startup\'s money game sorted.',
       icon: DollarSign,
       color: 'text-green-400',
       path: '/financial-setup'
@@ -49,6 +52,7 @@ const DashboardPage: React.FC = () => {
       id: 'branding-marketing',
       title: 'Branding & Marketing',
       description: 'Build your brand',
+      tooltip: 'Build a memorable brand and go-to-market strategy with expert help.',
       icon: Palette,
       color: 'text-pink-400',
       path: '/branding-marketing'
@@ -132,7 +136,8 @@ const DashboardPage: React.FC = () => {
                   <button
                     key={service.id}
                     onClick={() => handleServiceClick(service.path)}
-                    className="w-full bg-slate-700 hover:bg-slate-600 rounded-lg p-4 flex items-center justify-between transition-colors group"
+                    className="relative w-full bg-slate-700 hover:bg-slate-600 rounded-lg p-4 flex items-center justify-between transition-colors group"
+                    title={service.tooltip}
                   >
                     <div className="flex items-center space-x-3">
                       <IconComponent className={`h-5 w-5 ${service.color}`} />
@@ -142,6 +147,12 @@ const DashboardPage: React.FC = () => {
                       </div>
                     </div>
                     <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-white transition-colors" />
+                    
+                    {/* Tooltip */}
+                    <div className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 bg-gray-900 text-white text-sm rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-10 shadow-lg">
+                      {service.tooltip}
+                      <div className="absolute right-full top-1/2 transform -translate-y-1/2 border-4 border-transparent border-r-gray-900"></div>
+                    </div>
                   </button>
                 );
               })}
@@ -152,119 +163,38 @@ const DashboardPage: React.FC = () => {
         {/* Main Content */}
         <div className="flex-1 p-8">
           {/* Chat Section */}
-          <div className="bg-slate-800 rounded-2xl p-8 mb-8">
+          <div className="bg-slate-800 rounded-2xl p-12 mb-8">
             <h2 className="text-xl font-medium text-center mb-6 text-gray-300">
               How can I help you today, {user?.user_metadata?.full_name?.split(' ')[0] || 'Ethan'}?
             </h2>
             
             <form onSubmit={handleChatSubmit} className="relative">
-              <div className="flex items-center bg-slate-700 rounded-full p-2">
+              <div className="flex items-center bg-slate-700 rounded-full p-3">
                 <input
                   type="text"
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   placeholder="Ask me anything..."
-                  className="flex-1 bg-transparent px-4 py-3 text-white placeholder-gray-400 focus:outline-none"
+                  className="flex-1 bg-transparent px-6 py-4 text-lg text-white placeholder-gray-400 focus:outline-none"
                 />
                 <div className="flex items-center space-x-2">
                   <button
                     type="button"
-                    className="p-3 bg-blue-600 hover:bg-blue-700 rounded-full transition-colors"
+                    className="p-4 bg-blue-600 hover:bg-blue-700 rounded-full transition-colors"
                   >
-                    <Mic className="h-5 w-5 text-white" />
+                    <Mic className="h-6 w-6 text-white" />
                   </button>
                   <button
                     type="submit"
-                    className="p-3 bg-blue-600 hover:bg-blue-700 rounded-full transition-colors"
+                    className="p-4 bg-blue-600 hover:bg-blue-700 rounded-full transition-colors"
                   >
-                    <Send className="h-5 w-5 text-white" />
+                    <Send className="h-6 w-6 text-white" />
                   </button>
                 </div>
               </div>
             </form>
           </div>
 
-          {/* Journey Section */}
-          <div className="bg-slate-800 rounded-2xl p-8">
-            <h2 className="text-2xl font-bold text-center mb-8">Your Entrepreneur Journey</h2>
-            
-            <div className="relative h-64 flex items-center justify-center">
-              {/* Journey Path */}
-              <svg
-                className="absolute inset-0 w-full h-full"
-                viewBox="0 0 600 200"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M50 150 Q150 50 250 100 T450 80 Q500 60 550 100"
-                  stroke="url(#gradient)"
-                  strokeWidth="4"
-                  fill="none"
-                  className="animate-pulse"
-                />
-                <defs>
-                  <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#3B82F6" />
-                    <stop offset="50%" stopColor="#8B5CF6" />
-                    <stop offset="100%" stopColor="#06B6D4" />
-                  </linearGradient>
-                </defs>
-              </svg>
-
-              {/* Journey Stars */}
-              <div className="absolute left-1/4 top-1/3">
-                <Star className="h-8 w-8 text-yellow-400 fill-current animate-pulse" />
-              </div>
-              <div className="absolute right-1/4 top-1/4">
-                <Star className="h-6 w-6 text-yellow-400 fill-current animate-pulse" style={{ animationDelay: '0.5s' }} />
-              </div>
-              <div className="absolute left-1/3 bottom-1/3">
-                <Star className="h-4 w-4 text-yellow-400 fill-current animate-pulse" style={{ animationDelay: '1s' }} />
-              </div>
-
-              {/* Animated Bot Character */}
-              <div className="absolute left-12 bottom-8 animate-bounce">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
-                  <Bot className="h-6 w-6 text-white" />
-                </div>
-              </div>
-
-              {/* Journey Milestones */}
-              <div className="absolute inset-0 flex items-center justify-between px-12">
-                <div className="text-center">
-                  <div className="w-4 h-4 bg-blue-500 rounded-full mb-2 mx-auto"></div>
-                  <span className="text-xs text-gray-400">Start</span>
-                </div>
-                <div className="text-center">
-                  <div className="w-4 h-4 bg-purple-500 rounded-full mb-2 mx-auto"></div>
-                  <span className="text-xs text-gray-400">Legal</span>
-                </div>
-                <div className="text-center">
-                  <div className="w-4 h-4 bg-green-500 rounded-full mb-2 mx-auto"></div>
-                  <span className="text-xs text-gray-400">Finance</span>
-                </div>
-                <div className="text-center">
-                  <div className="w-4 h-4 bg-pink-500 rounded-full mb-2 mx-auto"></div>
-                  <span className="text-xs text-gray-400">Launch</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="text-center mt-8">
-              <p className="text-gray-400 mb-4">
-                Track your progress as you build your startup from idea to launch
-              </p>
-              <div className="flex justify-center space-x-4">
-                <div className="bg-slate-700 px-4 py-2 rounded-full">
-                  <span className="text-sm">Progress: 25%</span>
-                </div>
-                <div className="bg-slate-700 px-4 py-2 rounded-full">
-                  <span className="text-sm">Next: Legal Setup</span>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
