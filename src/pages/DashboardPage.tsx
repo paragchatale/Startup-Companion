@@ -315,7 +315,7 @@ const DashboardPage: React.FC = () => {
                 Dashboard
               </h1>
               <button 
-                onClick={() => setShowDocuments(true)}
+                onClick={() => navigate('/my-documents')}
                 className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors duration-200 bg-white/50 hover:bg-white/80 px-4 py-2 rounded-lg border border-gray-200 hover:border-blue-300"
               >
                 <FileText className="h-5 w-5" />
