@@ -29,7 +29,7 @@ export const getUserDetails = async (userId: string): Promise<UserDetails | null
     .from('user_details')
     .select('*')
     .eq('id', userId)
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error('Error fetching user details:', error);
