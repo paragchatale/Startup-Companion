@@ -10,7 +10,6 @@ import FinancialSetupPage from './pages/FinancialSetupPage';
 import BrandingMarketingPage from './pages/BrandingMarketingPage';
 import LoginPage from './pages/LoginPage';
 import SignUpPage from './pages/SignUpPage';
-import DashboardPage from './pages/DashboardPage';
 
 function App() {
   return (
@@ -27,7 +26,6 @@ function App() {
             <Route path="/branding-marketing" element={<BrandingMarketingPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignUpPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
           </Routes>
         </div>
       </Router>

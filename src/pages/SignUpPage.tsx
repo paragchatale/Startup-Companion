@@ -61,8 +61,8 @@ const SignUpPage: React.FC = () => {
       if (error) {
         setError(error.message);
       } else {
-        // Sign up successful, redirect to dashboard
-        navigate('/dashboard');
+        // Sign up successful, redirect to home
+        navigate('/');
       }
     } catch (err) {
       setError('An unexpected error occurred');

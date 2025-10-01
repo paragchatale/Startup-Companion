@@ -55,15 +55,6 @@ const Navbar: React.FC = () => {
             ))}
             {user ? (
               <div className="flex items-center space-x-4">
-                <span className="text-gray-700 font-medium">
-                  {user.user_metadata?.full_name || user.email?.split('@')[0]}
-                </span>
-                <button
-                  onClick={() => navigate('/dashboard')}
-                  className="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-2 rounded-full hover:shadow-lg transform hover:scale-105 transition-all duration-200 font-medium"
-                >
-                  Dashboard
-                </button>
                 <button
                   onClick={signOut}
                   className="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-2 rounded-full hover:shadow-lg transform hover:scale-105 transition-all duration-200 font-medium"
@@ -110,18 +101,6 @@ const Navbar: React.FC = () => {
               ))}
               {user ? (
                 <div className="mx-3 mt-4 space-y-2">
-                  <div className="text-gray-700 font-medium px-3 py-2">
-                    {user.user_metadata?.full_name || user.email?.split('@')[0]}
-                  </div>
-                  <button
-                    onClick={() => {
-                      navigate('/dashboard');
-                      toggleMenu();
-                    }}
-                    className="block w-full bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-2 rounded-full text-center font-medium mb-2"
-                  >
-                    Dashboard
-                  </button>
                   <button
                     onClick={() => {
                       signOut();
