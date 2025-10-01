@@ -29,6 +29,12 @@ const MyDocumentsPage: React.FC = () => {
   }, [user, navigate]);
 
   const fetchDocuments = async () => {
+    if (!user?.id) {
+      console.warn('User ID not available, skipping document fetch');
+      setLoading(false);
+      return;
+    }
+    
     try {
       setLoading(true);
       const { data, error } = await supabase

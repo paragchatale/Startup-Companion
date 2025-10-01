@@ -74,6 +74,11 @@ const DashboardPage: React.FC = () => {
   }, [user, navigate]);
 
   const loadDocuments = async () => {
+    if (!user?.id) {
+      console.warn('User ID not available, skipping document load');
+      return;
+    }
+    
     try {
       const { data, error } = await supabase
         .from('documents')
