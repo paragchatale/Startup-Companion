@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../components/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import { User, CreditCard as Edit3, MessageCircle, Mic, Scale, Search, DollarSign, Palette, Bell, LogOut, Send, CheckCircle, Circle, FileText } from 'lucide-react';
 
 const DashboardPage: React.FC = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [chatMessage, setChatMessage] = useState('');
-  const [chatHistory, setChatHistory] = useState<Array<{type: 'user' | 'bot', message: string}>>([]);
+  const [chatHistory, setChatHistory] = useState<Array<{type: 'user' | 'bot', message: string, timestamp?: Date}>>([]);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showChatPopup, setShowChatPopup] = useState(false);
   const [showDocuments, setShowDocuments] = useState(false);
   const [documents, setDocuments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
   const [profileData, setProfileData] = useState({
     name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User',
     designation: 'Entrepreneur',
