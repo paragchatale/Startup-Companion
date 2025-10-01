@@ -39,13 +39,30 @@ serve(async (req) => {
 
   // Only accept POST requests
   if (req.method !== "POST") {
-    return new Response("Method not allowed", { 
-      status: 405,
-      headers: corsHeaders,
-    });
+    return new Response(
+      JSON.stringify({ error: "Method not allowed" }),
+      { 
+        status: 405,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
+      }
+    );
   }
 
   try {
+    // Check if API key is configured
+    if (!OPENROUTER_API_KEY) {
+      console.error('OPENROUTER_API_KEY environment variable is not set');
+      return new Response(
+        JSON.stringify({ 
+          error: "OpenRouter API key is not configured. Please contact support." 
+        }),
+        { 
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        }
+      );
+    }
+
     // Parse user input (expects `{ message: string }` JSON)
     const body = await req.json();
     const userMessage = body.message || "";
@@ -71,6 +88,8 @@ serve(async (req) => {
       max_tokens: 1024,
     };
 
+    console.log('Calling OpenRouter API with payload:', JSON.stringify(payload, null, 2));
+
     // Call the OpenRouter LLM API
     const response = await fetch(OPENROUTER_API_URL, {
       method: "POST",
@@ -81,11 +100,25 @@ serve(async (req) => {
       body: JSON.stringify(payload),
     });
 
+    console.log('OpenRouter API response status:', response.status);
+
     if (!response.ok) {
-      throw new Error(`OpenRouter API error: ${response.status}`);
+      const errorText = await response.text();
+      console.error('OpenRouter API error:', response.status, errorText);
+      
+      return new Response(
+        JSON.stringify({ 
+          error: `OpenRouter API error: ${response.status}. Please try again later.` 
+        }),
+        { 
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        }
+      );
     }
 
     const result = await response.json();
+    console.log('OpenRouter API result:', JSON.stringify(result, null, 2));
 
     // Send back only the assistant's reply
     const replyContent = result.choices?.[0]?.message?.content || "I couldn't process your request, please try again.";
@@ -98,8 +131,11 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error('Error in startup-chat function:', error);
+    
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({ 
+        error: "An unexpected error occurred. Please try again later." 
+      }),
       { 
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" }
