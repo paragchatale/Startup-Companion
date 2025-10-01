@@ -257,7 +257,7 @@ const DashboardPage: React.FC = () => {
     }
   };
 
-  const generatePDF = async (conversation: any[]) => {
+  const generatePDF = async (conversation: ChatMessage[]) => {
     try {
       // Create a simple text-based document content
       const content = conversation.map(msg => 
@@ -284,7 +284,7 @@ const DashboardPage: React.FC = () => {
     }
   };
 
-  const downloadDocument = (doc: any) => {
+  const downloadDocument = (doc: Document) => {
     const blob = new Blob([doc.content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -328,13 +328,6 @@ const DashboardPage: React.FC = () => {
                 <FileText className="h-5 w-5" />
                 <span className="font-medium">My Documents</span>
               </button>
-              <button 
-                onClick={() => navigate('/my-documents')}
-                className="flex items-center space-x-2 text-gray-700 hover:text-purple-600 transition-colors duration-200 bg-white/50 hover:bg-white/80 px-4 py-2 rounded-lg border border-gray-200 hover:border-purple-300"
-              >
-                <FileText className="h-5 w-5" />
-                <span className="font-medium">My Biz Doc</span>
-              </button>
             </div>
             
             <div className="flex items-center space-x-4">
@@ -370,13 +363,15 @@ const DashboardPage: React.FC = () => {
                 )}
               </div>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">{profileData.name}</h3>
-            <p className="text-gray-600 text-sm">{profileData.designation}</p>
+            
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">{profileData.name}</h3>
+            <p className="text-gray-600 mb-3 text-sm">{profileData.designation}</p>
+            
             <button
               onClick={() => setShowEditProfile(true)}
-              className="mt-2 text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center justify-center space-x-1"
+              className="flex items-center space-x-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-3 py-2 rounded-full hover:shadow-lg transition-all duration-200 mx-auto text-sm"
             >
-              <Edit3 className="h-3 w-3" />
+              <Edit3 className="h-4 w-4" />
               <span>Edit Profile</span>
             </button>
           </div>
