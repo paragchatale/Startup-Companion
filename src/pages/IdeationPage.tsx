@@ -88,11 +88,12 @@ const IdeationPage: React.FC = () => {
 
   const handleMaybeLater = async () => {
     setShowSignupPrompt(false);
+    setMessageCount(0); // Reset counter to allow 3 more messages
     
     // Process the pending message that triggered the signup prompt
     if (pendingMessage) {
-      const currentMessages = [...messages, { role: 'user' as const, content: pendingMessage }];
-      await processMessage(pendingMessage, currentMessages);
+      // Don't add the user message again since it's already in the messages array
+      await processMessage(pendingMessage, messages);
       setPendingMessage('');
     }
   };
