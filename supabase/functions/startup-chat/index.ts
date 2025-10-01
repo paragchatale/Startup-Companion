@@ -82,7 +82,7 @@ serve(async (req) => {
     const generatePDFRequest = body.generatePDF || false;
     const conversation = body.conversation || [];
 
-    if (!userMessage.trim()) {
+    if (!generatePDFRequest && !userMessage.trim()) {
       return new Response(
         JSON.stringify({ error: "Message is required" }),
         { 
