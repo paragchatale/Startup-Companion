@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, MessageCircle, ArrowLeft, Target, Globe, DollarSign, X, Send } from 'lucide-react';
 import { callGovtSchemeMatcherBot } from '../lib/supabaseHelpers';

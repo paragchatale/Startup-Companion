@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DollarSign, MessageCircle, ArrowLeft, CreditCard, PieChart, Receipt, X, Send } from 'lucide-react';
 import { callFinancialSetupBot } from '../lib/supabaseHelpers';

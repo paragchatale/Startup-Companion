@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { MessageCircle, ArrowRight, Lightbulb, X, Send } from 'lucide-react';
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Scale, MessageCircle, ArrowLeft, CheckCircle, X, Send } from 'lucide-react';
 import { callLegalAdvisorBot } from '../lib/supabaseHelpers';

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Palette, MessageCircle, ArrowLeft, Megaphone, Users, Zap, X, Send } from 'lucide-react';
 import { callBrandingMarketingBot } from '../lib/supabaseHelpers';
