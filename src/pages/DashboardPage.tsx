@@ -11,8 +11,6 @@ const DashboardPage: React.FC = () => {
   const [chatHistory, setChatHistory] = useState<Array<{type: 'user' | 'bot', message: string, timestamp?: Date}>>([]);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showChatPopup, setShowChatPopup] = useState(false);
-  const [showDocuments, setShowDocuments] = useState(false);
-  const [documents, setDocuments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -70,28 +68,7 @@ const DashboardPage: React.FC = () => {
     if (!user) {
       navigate('/login');
     }
-    loadDocuments();
   }, [user, navigate]);
-
-  const loadDocuments = async () => {
-    if (!user?.id) {
-      console.warn('User ID not available, skipping document load');
-      return;
-    }
-    
-    try {
-      const { data, error } = await supabase
-        .from('documents')
-        .select('*')
-        .eq('user_id', user?.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setDocuments(data || []);
-    } catch (error) {
-      console.error('Error loading documents:', error);
-    }
-  };
 
   const callStartupChatBot = async (message: string) => {
     setIsLoading(true);
@@ -210,57 +187,14 @@ const DashboardPage: React.FC = () => {
       return;
     }
 
-    try {
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/startup-chat`;
-      const headers = {
-        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        'Content-Type': 'application/json',
-      };
-
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ 
-          message: '',
-          generatePDF: true,
-          conversation: chatHistory
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      
-      if (data.type === 'pdf') {
-        // Save to Supabase documents table
-        const { error } = await supabase
-          .from('documents')
-          .insert([{
-            title: data.pdfData.title,
-            content: data.pdfData.content,
-            user_id: user?.id
-          }]);
-
-        if (error) throw error;
-        
-        loadDocuments();
-        alert('Conversation saved to My Documents!');
-        
-        // Clear chat after saving
-        setChatHistory([]);
-      }
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      alert('Error saving document. Please try again.');
+    if (!user?.id) {
+      alert('Please log in to save documents.');
+      return;
     }
-  };
 
-  const generatePDF = async (conversation: any[]) => {
     try {
       // Create a simple text-based document content
-      const content = conversation.map(msg => 
+      const content = chatHistory.map(msg => 
         `${msg.type.toUpperCase()}: ${msg.message}\n\n`
       ).join('');
       
@@ -276,24 +210,12 @@ const DashboardPage: React.FC = () => {
 
       if (error) throw error;
       
-      await loadDocuments();
-      alert('Document saved successfully!');
+      alert('Conversation saved successfully!');
+      setChatHistory([]);
     } catch (error) {
       console.error('Error saving document:', error);
       alert('Error saving document. Please try again.');
     }
-  };
-
-  const downloadDocument = (doc: any) => {
-    const blob = new Blob([doc.content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${doc.title}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
   };
 
   const handleServiceClick = (path: string) => {
@@ -324,13 +246,6 @@ const DashboardPage: React.FC = () => {
             </div>
             
             <div className="flex items-center space-x-4">
-              <button 
-                onClick={() => navigate('/my-documents')}
-                className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors duration-200 bg-white/50 hover:bg-white/80 px-4 py-2 rounded-lg border border-gray-200 hover:border-blue-300"
-              >
-                <FileText className="h-5 w-5" />
-                <span className="font-medium">My Documents</span>
-              </button>
               <button className="p-2 text-gray-600 hover:text-blue-600 transition-colors">
                 <Bell className="h-5 w-5" />
               </button>
@@ -364,7 +279,7 @@ const DashboardPage: React.FC = () => {
             <p className="text-gray-600 text-sm">{profileData.designation}</p>
             <button
               onClick={() => setShowEditProfile(true)}
-              className="mt-2 text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center justify-center space-x-1"
+              className="mt-2 text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center justify-center space-x-1 w-full"
             >
               <Edit3 className="h-3 w-3" />
               <span>Edit Profile</span>
@@ -504,7 +419,7 @@ const DashboardPage: React.FC = () => {
       {/* Chat Popup Modal */}
       {showChatPopup && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-96 flex flex-col">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-2xl max-h-[600px] flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
                 <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-2 rounded-lg mr-3">
@@ -575,60 +490,14 @@ const DashboardPage: React.FC = () => {
               <div className="mt-3 flex justify-center">
                 <button
                   onClick={generateAndSavePDF}
-                  className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:shadow-lg transition-all duration-200 flex items-center space-x-2"
+                  className="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:shadow-lg transition-all duration-200 flex items-center space-x-2 disabled:opacity-50"
+                  disabled={!user?.id}
                 >
                   <FileText className="h-4 w-4" />
                   <span>Save as Document</span>
                 </button>
               </div>
             )}
-          </div>
-        </div>
-      )}
-
-      {showDocuments && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-2xl max-h-96 flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900">My Documents</h2>
-              <button
-                onClick={() => setShowDocuments(false)}
-                className="text-gray-400 hover:text-gray-600 text-xl"
-              >
-                ×
-              </button>
-            </div>
-            
-            <div className="flex-1 overflow-y-auto">
-              {documents.length === 0 ? (
-                <div className="text-center py-8">
-                  <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">No documents saved yet</p>
-                  <p className="text-sm text-gray-400 mt-2">Start a conversation and save it as a document</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {documents.map((doc) => (
-                    <div key={doc.id} className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <h3 className="font-medium text-gray-900">{doc.title}</h3>
-                          <p className="text-sm text-gray-500">
-                            {new Date(doc.created_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => downloadDocument(doc)}
-                          className="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-700 transition-colors"
-                        >
-                          Download
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
           </div>
         </div>
       )}
