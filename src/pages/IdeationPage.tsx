@@ -12,6 +12,7 @@ const IdeationPage: React.FC = () => {
   const [isLoading, setIsLoading] = React.useState(false);
   const [messageCount, setMessageCount] = React.useState(0);
   const [showSignupPrompt, setShowSignupPrompt] = React.useState(false);
+  const [pendingMessage, setPendingMessage] = React.useState('');
 
   const connectToChatBot = () => {
     setShowChatBot(true);
@@ -45,11 +46,17 @@ const IdeationPage: React.FC = () => {
 
     // Show signup prompt after 3 user messages
     if (newCount >= 3) {
+      setPendingMessage(userMessage);
       setShowSignupPrompt(true);
       setIsLoading(false);
       return;
     }
 
+    await processMessage(userMessage, newMessages);
+  };
+
+  const processMessage = async (userMessage: string, currentMessages: Array<{role: 'user' | 'assistant', content: string}>) => {
+    setIsLoading(true);
     try {
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/idea-refiner`, {
         method: 'POST',
@@ -67,15 +74,26 @@ const IdeationPage: React.FC = () => {
       const data = await response.json();
       
       // Add AI response to chat
-      setMessages([...newMessages, { role: 'assistant', content: data.response }]);
+      setMessages([...currentMessages, { role: 'assistant', content: data.response }]);
     } catch (error) {
       console.error('Error sending message:', error);
-      setMessages([...newMessages, { 
+      setMessages([...currentMessages, { 
         role: 'assistant', 
         content: 'Sorry, I encountered an error. Please try again.' 
       }]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleMaybeLater = async () => {
+    setShowSignupPrompt(false);
+    
+    // Process the pending message that triggered the signup prompt
+    if (pendingMessage) {
+      const currentMessages = [...messages, { role: 'user' as const, content: pendingMessage }];
+      await processMessage(pendingMessage, currentMessages);
+      setPendingMessage('');
     }
   };
 
@@ -296,7 +314,7 @@ const IdeationPage: React.FC = () => {
                   </button>
                   <button
                     onClick={() => {
-                      setShowSignupPrompt(false);
+                      handleMaybeLater();
                     }}
                     className="w-full text-gray-500 hover:text-gray-700 transition-colors text-sm"
                   >
