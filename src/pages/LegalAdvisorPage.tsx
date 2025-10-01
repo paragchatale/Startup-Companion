@@ -1,12 +1,60 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Scale, MessageCircle, ArrowLeft, CheckCircle } from 'lucide-react';
+import { Scale, MessageCircle, ArrowLeft, CheckCircle, X, Send } from 'lucide-react';
+import { callLegalAdvisorBot } from '../lib/supabaseHelpers';
 
 const LegalAdvisorPage: React.FC = () => {
   const navigate = useNavigate();
 
+  const [showChatBot, setShowChatBot] = useState(false);
+  const [messages, setMessages] = useState<Array<{role: 'user' | 'assistant', content: string}>>([]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+
   const connectToChatBot = () => {
-    alert('Connecting to Legal Advisor Chat Bot...');
+    setShowChatBot(true);
+    if (messages.length === 0) {
+      setMessages([
+        { role: 'assistant', content: 'Hi! I\'m your Legal Advisor. I can help you with company registration, trademarks, compliance, and legal documentation. What legal question do you have?' }
+      ]);
+    }
+  };
+
+  const sendMessage = async () => {
+    if (!inputMessage.trim() || isLoading) return;
+
+    const userMessage = inputMessage.trim();
+    setInputMessage('');
+    setIsLoading(true);
+
+    const newMessages = [...messages, { role: 'user' as const, content: userMessage }];
+    setMessages(newMessages);
+
+    try {
+      const response = await callLegalAdvisorBot(userMessage, sessionId || undefined, newMessages);
+      
+      setMessages([...newMessages, { role: 'assistant', content: response.response }]);
+      
+      if (response.sessionId && !sessionId) {
+        setSessionId(response.sessionId);
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setMessages([...newMessages, { 
+        role: 'assistant', 
+        content: 'Sorry, I encountered an error. Please try again.' 
+      }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
   };
 
   const legalServices = [
@@ -101,6 +149,85 @@ const LegalAdvisorPage: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* ChatBot Popup */}
+        {showChatBot && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[600px] flex flex-col">
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-2 rounded-lg">
+                    <Scale className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Legal Advisor</h3>
+                    <p className="text-sm text-gray-500">Get expert legal guidance</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowChatBot(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              {/* Messages */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                {messages.map((message, index) => (
+                  <div
+                    key={index}
+                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div
+                      className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
+                        message.role === 'user'
+                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
+                          : 'bg-gray-100 text-gray-800'
+                      }`}
+                    >
+                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    </div>
+                  </div>
+                ))}
+                {isLoading && (
+                  <div className="flex justify-start">
+                    <div className="bg-gray-100 px-4 py-2 rounded-2xl">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Input */}
+              <div className="p-6 border-t border-gray-200">
+                <div className="flex space-x-3">
+                  <input
+                    type="text"
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Ask your legal question..."
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={isLoading}
+                  />
+                  <button
+                    onClick={sendMessage}
+                    disabled={isLoading || !inputMessage.trim()}
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-2 rounded-xl hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Send className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

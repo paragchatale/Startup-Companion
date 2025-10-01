@@ -14,7 +14,8 @@ import {
   Bot,
   Settings,
   Star,
-  X
+  X,
+  MicOff
 } from 'lucide-react';
 
 const DashboardPage: React.FC = () => {
@@ -24,6 +25,37 @@ const DashboardPage: React.FC = () => {
   const [messages, setMessages] = useState<Array<{role: 'user' | 'assistant', content: string}>>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [isListening, setIsListening] = useState(false);
+  const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
+
+  // Initialize speech recognition
+  React.useEffect(() => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognitionInstance = new SpeechRecognition();
+      
+      recognitionInstance.continuous = false;
+      recognitionInstance.interimResults = false;
+      recognitionInstance.lang = 'en-US';
+      
+      recognitionInstance.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setChatInput(transcript);
+        setIsListening(false);
+      };
+      
+      recognitionInstance.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        setIsListening(false);
+      };
+      
+      recognitionInstance.onend = () => {
+        setIsListening(false);
+      };
+      
+      setRecognition(recognitionInstance);
+    }
+  }, []);
 
   const services = [
     {
@@ -261,10 +293,15 @@ const DashboardPage: React.FC = () => {
                 <div className="flex items-center space-x-2">
                   <button
                     type="button"
+                    onClick={toggleVoiceInput}
                     className="p-4 bg-blue-600 hover:bg-blue-700 rounded-full transition-colors disabled:opacity-50"
                     disabled={isLoading}
                   >
-                    <Mic className="h-6 w-6 text-white" />
+                    {isListening ? (
+                      <MicOff className="h-6 w-6 text-white animate-pulse" />
+                    ) : (
+                      <Mic className="h-6 w-6 text-white" />
+                    )}
                   </button>
                   <button
                     type="submit"
@@ -275,6 +312,11 @@ const DashboardPage: React.FC = () => {
                   </button>
                 </div>
               </div>
+              {isListening && (
+                <div className="text-center mt-2">
+                  <p className="text-sm text-gray-400 animate-pulse">Listening... Speak now</p>
+                </div>
+              )}
             </form>
           </div>
         </div>
