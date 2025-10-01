@@ -152,6 +152,21 @@ const DashboardPage: React.FC = () => {
     }
   };
 
+  const toggleVoiceInput = () => {
+    if (!recognition) {
+      console.warn('Speech recognition not supported');
+      return;
+    }
+
+    if (isListening) {
+      recognition.stop();
+      setIsListening(false);
+    } else {
+      recognition.start();
+      setIsListening(true);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-900 text-white">
       {/* Header */}
