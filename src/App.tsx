@@ -10,6 +10,7 @@ import FinancialSetupPage from './pages/FinancialSetupPage';
 import BrandingMarketingPage from './pages/BrandingMarketingPage';
 import LoginPage from './pages/LoginPage';
 import SignUpPage from './pages/SignUpPage';
+import DashboardPage from './pages/DashboardPage';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Navbar />
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/ideation" element={<IdeationPage />} />
             <Route path="/legal-advisor" element={<LegalAdvisorPage />} />
             <Route path="/scheme-match-maker" element={<SchemeMatchMakerPage />} />

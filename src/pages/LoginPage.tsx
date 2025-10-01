@@ -35,8 +35,8 @@ const LoginPage: React.FC = () => {
       if (error) {
         setError(error.message);
       } else {
-        // Login successful, redirect to home
-        navigate('/');
+        // Login successful, redirect to dashboard
+        navigate('/dashboard');
       }
     } catch (err) {
       setError('An unexpected error occurred');
