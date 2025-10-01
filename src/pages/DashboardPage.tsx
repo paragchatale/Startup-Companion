@@ -80,15 +80,6 @@ const DashboardPage: React.FC = () => {
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Dashboard</h1>
           <div className="flex items-center space-x-4">
-            <button className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors">
-              <FileText className="h-5 w-5" />
-              <span>My Biz Doc</span>
-            </button>
-            <button className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors">
-              <Bot className="h-5 w-5" />
-              <span>AI Response Doc</span>
-            </button>
-            <div className="h-6 w-px bg-slate-600"></div>
             <button className="text-gray-300 hover:text-white transition-colors">
               <Settings className="h-6 w-6" />
             </button>
@@ -117,6 +108,17 @@ const DashboardPage: React.FC = () => {
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors w-full"
             >
               Update User Details
+            </button>
+            
+            {/* Document Buttons */}
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors w-full flex items-center justify-center space-x-2">
+              <FileText className="h-5 w-5" />
+              <span>My Biz Doc</span>
+            </button>
+            
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors w-full flex items-center justify-center space-x-2">
+              <Bot className="h-5 w-5" />
+              <span>AI Response Doc</span>
             </button>
           </div>
 
