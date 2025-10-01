@@ -88,6 +88,7 @@ const DashboardPage: React.FC = () => {
               <Bot className="h-5 w-5" />
               <span>AI Response Doc</span>
             </button>
+            <div className="h-6 w-px bg-slate-600"></div>
             <button className="text-gray-300 hover:text-white transition-colors">
               <Settings className="h-6 w-6" />
             </button>
@@ -151,7 +152,7 @@ const DashboardPage: React.FC = () => {
           {/* Chat Section */}
           <div className="bg-slate-800 rounded-2xl p-8 mb-8">
             <h2 className="text-xl font-medium text-center mb-6 text-gray-300">
-              How can I help you today?
+              How can I help you today, {user?.user_metadata?.full_name?.split(' ')[0] || 'Ethan'}?
             </h2>
             
             <form onSubmit={handleChatSubmit} className="relative">
