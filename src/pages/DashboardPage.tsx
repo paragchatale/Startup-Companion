@@ -70,6 +70,7 @@ const DashboardPage: React.FC = () => {
     if (!user) {
       navigate('/login');
     }
+    loadDocuments();
   }, [user, navigate]);
 
   const loadDocuments = async () => {
@@ -77,6 +78,7 @@ const DashboardPage: React.FC = () => {
       const { data, error } = await supabase
         .from('documents')
         .select('*')
+        .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -238,7 +240,7 @@ const DashboardPage: React.FC = () => {
 
         if (error) throw error;
         
-        await loadDocuments();
+        loadDocuments();
         alert('Conversation saved to My Documents!');
         
         // Clear chat after saving

@@ -25,10 +25,10 @@ const MyDocumentsPage: React.FC = () => {
       navigate('/login');
       return;
     }
-    loadDocuments();
+    fetchDocuments();
   }, [user, navigate]);
 
-  const loadDocuments = async () => {
+  const fetchDocuments = async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
