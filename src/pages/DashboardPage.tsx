@@ -151,20 +151,23 @@ const DashboardPage: React.FC = () => {
             </h2>
             <p className="text-gray-400 mb-6">Founder</p>
             <button
-              onClick={handleAIResponseDoc}
               onClick={handleUpdateProfile}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors w-full"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors w-full mb-3"
             >
               Update User Details
             </button>
             
             {/* Document Buttons */}
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors w-full flex items-center justify-center space-x-2">
+            <button 
+              onClick={handleMyBizDoc}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors w-full flex items-center justify-center space-x-2 mb-3">
               <FileText className="h-5 w-5" />
               <span>My Biz Doc</span>
             </button>
             
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors w-full flex items-center justify-center space-x-2">
+            <button 
+              onClick={handleAIResponseDoc}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors w-full flex items-center justify-center space-x-2">
               <Bot className="h-5 w-5" />
               <span>AI Response Doc</span>
             </button>
@@ -274,18 +277,6 @@ const DashboardPage: React.FC = () => {
               </div>
             </form>
           </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default DashboardPage;
-                </div>
-              </div>
-            </form>
-          </div>
-
         </div>
       </div>
     </div>
