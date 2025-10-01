@@ -1,15 +1,86 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { MessageCircle, ArrowRight, Lightbulb } from 'lucide-react';
+import { MessageCircle, ArrowRight, Lightbulb, X, Send } from 'lucide-react';
 
 const IdeationPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const businessIdea = location.state?.idea || '';
+  const [showChatBot, setShowChatBot] = React.useState(false);
+  const [messages, setMessages] = React.useState<Array<{role: 'user' | 'assistant', content: string}>>([]);
+  const [inputMessage, setInputMessage] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [messageCount, setMessageCount] = React.useState(0);
+  const [showSignupPrompt, setShowSignupPrompt] = React.useState(false);
 
   const connectToChatBot = () => {
-    // This would integrate with your chatbot service
-    alert(`Connecting to chat bot${businessIdea ? ` with your idea: "${businessIdea}"` : ''}...`);
+    setShowChatBot(true);
+    if (businessIdea && messages.length === 0) {
+      setMessages([
+        { role: 'assistant', content: `Hi! I see you want to work on: "${businessIdea}". Let's refine this idea together! What specific aspect would you like to improve?` }
+      ]);
+    } else if (messages.length === 0) {
+      setMessages([
+        { role: 'assistant', content: 'Hi! Tell me about your business idea and I\'ll help you refine it!' }
+      ]);
+    }
+  };
+
+  const sendMessage = async () => {
+    if (!inputMessage.trim() || isLoading) return;
+
+    const userMessage = inputMessage.trim();
+    setInputMessage('');
+    setIsLoading(true);
+
+    // Add user message to chat
+    const newMessages = [...messages, { role: 'user' as const, content: userMessage }];
+    setMessages(newMessages);
+
+    // Increment message count and check if we should show signup prompt
+    const newCount = messageCount + 1;
+    setMessageCount(newCount);
+
+    if (newCount >= 3) {
+      setShowSignupPrompt(true);
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/idea-refiner`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: userMessage }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response');
+      }
+
+      const data = await response.json();
+      
+      // Add AI response to chat
+      setMessages([...newMessages, { role: 'assistant', content: data.response }]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setMessages([...newMessages, { 
+        role: 'assistant', 
+        content: 'Sorry, I encountered an error. Please try again.' 
+      }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
   };
 
   return (
@@ -113,6 +184,127 @@ const IdeationPage: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* ChatBot Popup */}
+        {showChatBot && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[600px] flex flex-col">
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-2 rounded-lg">
+                    <MessageCircle className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Idea Refiner</h3>
+                    <p className="text-sm text-gray-500">Let's improve your business idea</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowChatBot(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+
+              {/* Messages */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                {messages.map((message, index) => (
+                  <div
+                    key={index}
+                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div
+                      className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl ${
+                        message.role === 'user'
+                          ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
+                          : 'bg-gray-100 text-gray-800'
+                      }`}
+                    >
+                      <p className="text-sm">{message.content}</p>
+                    </div>
+                  </div>
+                ))}
+                {isLoading && (
+                  <div className="flex justify-start">
+                    <div className="bg-gray-100 px-4 py-2 rounded-2xl">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Input */}
+              <div className="p-6 border-t border-gray-200">
+                <div className="flex space-x-3">
+                  <input
+                    type="text"
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Type your message..."
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={isLoading}
+                  />
+                  <button
+                    onClick={sendMessage}
+                    disabled={isLoading || !inputMessage.trim()}
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-2 rounded-xl hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Send className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Signup Prompt Modal */}
+        {showSignupPrompt && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-60 p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+              <div className="text-center">
+                <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-3 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                  <MessageCircle className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  Ready for More?
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  Sign up to continue refining your idea and access our full suite of startup tools including legal advice, funding opportunities, and more!
+                </p>
+                <div className="space-y-3">
+                  <button
+                    onClick={() => navigate('/signup')}
+                    className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
+                  >
+                    Sign Up Now
+                  </button>
+                  <button
+                    onClick={() => navigate('/login')}
+                    className="w-full border border-gray-300 text-gray-700 px-6 py-3 rounded-xl font-semibold hover:border-blue-600 hover:text-blue-600 transition-all duration-200"
+                  >
+                    Already have an account? Login
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowSignupPrompt(false);
+                      setShowChatBot(false);
+                    }}
+                    className="w-full text-gray-500 hover:text-gray-700 transition-colors text-sm"
+                  >
+                    Maybe later
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
