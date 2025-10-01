@@ -32,7 +32,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             localStorage.removeItem(key);
           }
         });
-        supabase.auth.signOut();
         setUser(null);
       } else {
         setUser(session?.user ?? null);
