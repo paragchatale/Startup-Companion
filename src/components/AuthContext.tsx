@@ -62,6 +62,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // If session not found, user is already logged out
       if (error && error.message.includes('session_not_found')) {
         setUser(null);
+        // Redirect to home page after signout
+        window.location.href = '/';
         return;
       }
       
@@ -70,11 +72,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.warn('Sign out error:', error.message);
         // Still set user to null to ensure UI reflects logged out state
         setUser(null);
+        // Redirect to home page after signout
+        window.location.href = '/';
+      } else {
+        // Successful signout, redirect to home
+        window.location.href = '/';
       }
     } catch (err) {
       console.warn('Sign out failed:', err);
       // Ensure user state is cleared even if sign out fails
       setUser(null);
+      // Redirect to home page after signout
+      window.location.href = '/';
     }
   };
 
