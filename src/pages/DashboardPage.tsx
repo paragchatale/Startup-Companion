@@ -65,20 +65,108 @@ const DashboardPage: React.FC = () => {
     }
   }, [user, navigate]);
 
+  const loadDocuments = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('documents')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setDocuments(data || []);
+    } catch (error) {
+      console.error('Error loading documents:', error);
+    }
+  };
+
+  const callStartupChatBot = async (message: string) => {
+    setIsLoading(true);
+    try {
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/startup-chat`;
+      const headers = {
+        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+      };
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ message }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data.reply || "I couldn't process your request, please try again.";
+    } catch (error) {
+      console.error('Error calling startup chat bot:', error);
+      return "Sorry, I'm having trouble connecting right now. Please try again later.";
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSendMessage = () => {
     if (chatMessage.trim()) {
-      setChatHistory(prev => [...prev, { type: 'user', message: chatMessage }]);
-      
-      // Simulate bot response
-      setTimeout(() => {
-        setChatHistory(prev => [...prev, { 
-          type: 'bot', 
-          message: "I'm here to help with your startup journey! What specific area would you like guidance on?" 
-        }]);
-      }, 1000);
+      const userMessage = chatMessage.trim();
+      setChatHistory(prev => [...prev, { 
+        type: 'user', 
+        message: userMessage,
+        timestamp: new Date()
+      }]);
       
       setChatMessage('');
+      
+      // Call the actual chatbot
+      callStartupChatBot(userMessage).then(botResponse => {
+        setChatHistory(prev => [...prev, { 
+          type: 'bot', 
+          message: botResponse,
+          timestamp: new Date()
+        }]);
+      });
     }
+  };
+
+  const generatePDF = async (conversation: ChatMessage[]) => {
+    try {
+      // Create a simple text-based document content
+      const content = conversation.map(msg => 
+        `${msg.type.toUpperCase()}: ${msg.message}\n\n`
+      ).join('');
+      
+      const title = `Startup Consultation - ${new Date().toLocaleDateString()}`;
+      
+      const { error } = await supabase
+        .from('documents')
+        .insert([{
+          title,
+          content,
+          user_id: user?.id
+        }]);
+
+      if (error) throw error;
+      
+      await loadDocuments();
+      alert('Document saved successfully!');
+    } catch (error) {
+      console.error('Error saving document:', error);
+      alert('Error saving document. Please try again.');
+    }
+  };
+
+  const downloadDocument = (doc: Document) => {
+    const blob = new Blob([doc.content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${doc.title}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const handleServiceClick = (path: string) => {
@@ -107,6 +195,10 @@ const DashboardPage: React.FC = () => {
                 Dashboard
               </h1>
               <button className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors duration-200 bg-white/50 hover:bg-white/80 px-4 py-2 rounded-lg border border-gray-200 hover:border-blue-300">
+              <button 
+                onClick={() => setShowDocuments(true)}
+                className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors duration-200 bg-white/50 hover:bg-white/80 px-4 py-2 rounded-lg border border-gray-200 hover:border-blue-300"
+              >
                 <FileText className="h-5 w-5" />
                 <span className="font-medium">My Documents</span>
               </button>
@@ -301,13 +393,37 @@ const DashboardPage: React.FC = () => {
                           ? 'bg-blue-600 text-white' 
                           : 'bg-white text-gray-800 shadow-sm'
                       }`}>
-                        <p className="text-gray-600 text-sm leading-relaxed">{service.description}</p>
+                        <p className="leading-relaxed">{chat.message}</p>
                       </div>
                     </div>
                   ))}
+                  {isLoading && (
+                    <div className="flex justify-start">
+                      <div className="bg-white text-gray-800 shadow-sm px-3 py-2 rounded-lg text-xs">
+                        <p className="leading-relaxed">Thinking...</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
+            
+            {chatHistory.length > 0 && (
+              <div className="flex justify-between items-center mb-2">
+                <button
+                  onClick={() => generatePDF(chatHistory)}
+                  className="text-xs bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  Save as Document
+                </button>
+                <button
+                  onClick={() => setChatHistory([])}
+                  className="text-xs text-gray-500 hover:text-gray-700"
+                >
+                  Clear Chat
+                </button>
+              </div>
+            )}
             
             <div className="flex space-x-2">
               <input
@@ -317,16 +433,65 @@ const DashboardPage: React.FC = () => {
                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                 placeholder="Type your message..."
                 className="flex-1 px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                disabled={isLoading}
               />
               <button className="p-2 text-gray-600 hover:text-blue-600 transition-colors">
                 <Mic className="h-5 w-5" />
               </button>
               <button
                 onClick={handleSendMessage}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-2 rounded-xl hover:shadow-lg transition-all duration-200"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-2 rounded-xl hover:shadow-lg transition-all duration-200 disabled:opacity-50"
+                disabled={isLoading || !chatMessage.trim()}
               >
                 <Send className="h-5 w-5" />
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* My Documents Modal */}
+      {showDocuments && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-2xl max-h-96 flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">My Documents</h2>
+              <button
+                onClick={() => setShowDocuments(false)}
+                className="text-gray-400 hover:text-gray-600 text-xl"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto">
+              {documents.length === 0 ? (
+                <div className="text-center py-8">
+                  <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500">No documents yet. Start a conversation with StartupBot to generate your first document!</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {documents.map((doc) => (
+                    <div key={doc.id} className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-medium text-gray-900">{doc.title}</h3>
+                          <p className="text-sm text-gray-500">
+                            Created: {new Date(doc.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => downloadDocument(doc)}
+                          className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                        >
+                          <Download className="h-5 w-5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
