@@ -31,6 +31,7 @@ interface RequestBody {
   message: string;
   sessionId?: string;
   chatHistory?: ChatMessage[];
+  userDetails?: UserDetails;
 }
 
 const SYSTEM_PROMPT = `You are the **Startup Companion**, a comprehensive business support AI designed to help early-stage entrepreneurs succeed. You are the main dashboard assistant that coordinates all aspects of startup development.
@@ -43,12 +44,16 @@ Your core capabilities include:
 - **General Business Advice**: Strategy, operations, growth planning
 
 Key Responsibilities:
+- **Smart Bot Orchestration**: When users ask questions that require specialized expertise, intelligently route to expert bots and relay their responses
 - Assess user needs and delegate to specialized bots when appropriate
 - Provide holistic business guidance that connects all aspects
 - Ask clarifying questions to understand the user's priorities
 - Offer step-by-step actionable advice
 - Encourage confidence and next steps
 - Connect different business areas (e.g., legal structure affects funding options)
+
+**CRITICAL: Check User Profile Completeness**
+Before providing detailed advice, check if the user has provided essential details like business_name, industry, location, business_stage. If key information is missing, politely ask them to update their profile for more tailored advice. Set missingDetails flag to true in response.
 
 Guidelines:
 - Ask short, focused questions (one-liner preferred)
@@ -57,6 +62,7 @@ Guidelines:
 - Provide encouraging, supportive responses
 - Be practical and actionable
 - End conversations by asking: "Are you satisfied with the response?"
+- Only ask satisfaction question at natural conclusion points, not robotically every few responses
 - Never hallucinate legal, financial, or regulatory information
 - Always recommend professional consultation for complex matters
 
@@ -66,6 +72,16 @@ Delegation Rules:
 - Financial setup → Suggest using Financial Setup Bot  
 - Branding/marketing → Suggest using Branding & Marketing Bot`;
 
+**Bot Orchestration Protocol:**
+When a user asks a question that clearly falls under a specialist domain:
+1. Recognize the domain (legal, financial, government schemes, branding/marketing)
+2. Ask: "This sounds like a [domain] question. Would you like me to connect with our [Expert Bot Name] to get you detailed guidance?"
+3. If user agrees, route the question to the appropriate bot and relay the response
+4. Allow follow-up questions in the same conversation
+5. Maintain context across bot interactions
+
+**Response Format:**
+Always return: { response: string, missingDetails?: boolean, botType?: string, routedResponse?: boolean }`;
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -90,14 +106,18 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { message, sessionId, chatHistory = [] }: RequestBody = await req.json();
+    const { message, sessionId, chatHistory = [], userDetails }: RequestBody = await req.json();
 
-    // Fetch user details for personalization
-    const { data: userDetails } = await supabase
-      .from('user_details')
-      .select('*')
-      .eq('id', user.id)
-      .single();
+    // Fetch user details if not provided
+    let currentUserDetails = userDetails;
+    if (!currentUserDetails) {
+      const { data } = await supabase
+        .from('user_details')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+      currentUserDetails = data;
+    }
 
     // Create or get chat session
     let currentSessionId = sessionId;
@@ -115,23 +135,56 @@ Deno.serve(async (req) => {
     }
 
     // Build comprehensive context from user details
+    let missingDetails = false;
     let userContext = '';
-    if (userDetails) {
-      userContext = `User Profile:
-- Name: ${userDetails.full_name || 'Not provided'}
-- Business: ${userDetails.business_name || 'Not provided'}
-- Stage: ${userDetails.business_stage || 'idea'}
-- Industry: ${userDetails.industry || 'Not specified'}
-- Location: ${userDetails.location || 'Not specified'}
-- Registered: ${userDetails.registered ? 'Yes' : 'No'}
-- Entity Type: ${userDetails.entity_type || 'Not decided'}
-- Funding Needed: ${userDetails.funding_needed ? 'Yes' : 'No'}
-- Legal Help Needed: ${userDetails.legal_help_needed ? 'Yes' : 'No'}
-- Government Scheme Interest: ${userDetails.govt_scheme_interest ? 'Yes' : 'No'}
-- Branding Status: ${userDetails.branding_status || 'Not started'}
-- Financial Status: ${userDetails.financial_status || 'Not assessed'}
+    if (currentUserDetails) {
+      // Check for missing critical details
+      const criticalFields = ['business_name', 'industry', 'location', 'business_stage'];
+      const missingFields = criticalFields.filter(field => !currentUserDetails[field]);
+      
+      if (missingFields.length > 0) {
+        missingDetails = true;
+      }
 
-Use this information to provide personalized, relevant advice and identify areas where the user might need focused help.`;
+      userContext = `User Profile:
+- Name: ${currentUserDetails.full_name || 'Not provided'}
+- Business: ${currentUserDetails.business_name || 'Not provided'}
+- Stage: ${currentUserDetails.business_stage || 'idea'}
+- Industry: ${currentUserDetails.industry || 'Not specified'}
+- Location: ${currentUserDetails.location || 'Not specified'}
+- Registered: ${currentUserDetails.registered ? 'Yes' : 'No'}
+- Entity Type: ${currentUserDetails.entity_type || 'Not decided'}
+- Funding Needed: ${currentUserDetails.funding_needed ? 'Yes' : 'No'}
+- Legal Help Needed: ${currentUserDetails.legal_help_needed ? 'Yes' : 'No'}
+- Government Scheme Interest: ${currentUserDetails.govt_scheme_interest ? 'Yes' : 'No'}
+- Branding Status: ${currentUserDetails.branding_status || 'Not started'}
+- Financial Status: ${currentUserDetails.financial_status || 'Not assessed'}
+
+Use this information to provide personalized, relevant advice and identify areas where the user might need focused help.
+
+${missingDetails ? 'IMPORTANT: Key profile information is missing. Encourage user to update their profile for better personalized advice.' : ''}`;
+    } else {
+      missingDetails = true;
+      userContext = 'User Profile: No profile information available. Encourage user to complete their profile for personalized advice.';
+    }
+
+    // Detect if question requires specialist bot
+    const legalKeywords = ['legal', 'registration', 'compliance', 'trademark', 'patent', 'contract', 'agreement', 'incorporation', 'entity', 'liability'];
+    const financeKeywords = ['finance', 'financial', 'banking', 'account', 'funding', 'investment', 'loan', 'gst', 'tax', 'accounting', 'bookkeeping'];
+    const schemeKeywords = ['government', 'scheme', 'grant', 'subsidy', 'funding', 'incubator', 'accelerator', 'startup india'];
+    const brandingKeywords = ['brand', 'branding', 'marketing', 'logo', 'website', 'social media', 'advertising', 'promotion'];
+
+    const messageLower = message.toLowerCase();
+    let suggestedBot = '';
+    
+    if (legalKeywords.some(keyword => messageLower.includes(keyword))) {
+      suggestedBot = 'legal';
+    } else if (financeKeywords.some(keyword => messageLower.includes(keyword))) {
+      suggestedBot = 'financial';
+    } else if (schemeKeywords.some(keyword => messageLower.includes(keyword))) {
+      suggestedBot = 'government';
+    } else if (brandingKeywords.some(keyword => messageLower.includes(keyword))) {
+      suggestedBot = 'branding';
     }
 
     // Prepare messages for OpenRouter
@@ -153,7 +206,7 @@ Use this information to provide personalized, relevant advice and identify areas
       body: JSON.stringify({
         model: 'openai/gpt-4o-mini',
         messages,
-        max_tokens: 600,
+        max_tokens: 800,
         temperature: 0.7,
         stream: false
       })
@@ -186,6 +239,8 @@ Use this information to provide personalized, relevant advice and identify areas
     return new Response(
       JSON.stringify({
         response: aiResponse,
+        missingDetails,
+        suggestedBot,
         sessionId: currentSessionId,
         responseId: responseRecord?.id
       }),

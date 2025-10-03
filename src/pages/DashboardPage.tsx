@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
-import { callMainDashboardBot } from '../lib/supabaseHelpers';
+import { callMainDashboardBot, getUserDetails, uploadProfilePicture, generateStartupKit } from '../lib/supabaseHelpers';
 import { 
   Scale, 
   Building2, 
@@ -15,21 +15,31 @@ import {
   Settings,
   Star,
   X,
-  MicOff
+  MicOff,
+  Save,
+  Package,
+  Edit3,
+  AlertCircle
 } from 'lucide-react';
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [chatInput, setChatInput] = useState('');
-  const [messages, setMessages] = useState<Array<{role: 'user' | 'assistant', content: string}>>([]);
+  const [messages, setMessages] = useState<Array<{role: 'user' | 'assistant', content: string, botType?: string}>>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
+  const [showFlashMessage, setShowFlashMessage] = useState(false);
+  const [userDetails, setUserDetails] = useState<any>(null);
+  const [profilePicUrl, setProfilePicUrl] = useState<string>('');
+  const [isUploadingPic, setIsUploadingPic] = useState(false);
+  const [isSavingResponse, setIsSavingResponse] = useState(false);
+  const [isGeneratingKit, setIsGeneratingKit] = useState(false);
 
   // Initialize speech recognition
-  React.useEffect(() => {
+  useEffect(() => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognitionInstance = new SpeechRecognition();
@@ -56,6 +66,31 @@ const DashboardPage: React.FC = () => {
       setRecognition(recognitionInstance);
     }
   }, []);
+
+  // Load user details on mount
+  useEffect(() => {
+    if (user) {
+      loadUserDetails();
+    }
+  }, [user]);
+
+  const loadUserDetails = async () => {
+    if (!user) return;
+    
+    try {
+      const details = await getUserDetails(user.id);
+      setUserDetails(details);
+      
+      // Set profile picture URL
+      if (details?.profile_picture_url) {
+        setProfilePicUrl(details.profile_picture_url);
+      } else {
+        setProfilePicUrl("https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop&crop=face");
+      }
+    } catch (error) {
+      console.error('Error loading user details:', error);
+    }
+  };
 
   const services = [
     {
@@ -112,10 +147,21 @@ const DashboardPage: React.FC = () => {
       setMessages(newMessages);
 
       try {
-        const response = await callMainDashboardBot(userMessage, sessionId || undefined, newMessages);
+        const response = await callMainDashboardBot(userMessage, sessionId || undefined, newMessages, userDetails);
+        
+        // Check if response indicates missing user details
+        if (response.missingDetails) {
+          setShowFlashMessage(true);
+          // Hide flash message after 10 seconds
+          setTimeout(() => setShowFlashMessage(false), 10000);
+        }
         
         // Add AI response to chat
-        setMessages([...newMessages, { role: 'assistant', content: response.response }]);
+        setMessages([...newMessages, { 
+          role: 'assistant', 
+          content: response.response,
+          botType: response.botType || 'main_dashboard'
+        }]);
         
         // Update session ID if it's a new session
         if (response.sessionId && !sessionId) {
@@ -167,6 +213,113 @@ const DashboardPage: React.FC = () => {
     }
   };
 
+  const handleProfilePicChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    setIsUploadingPic(true);
+    try {
+      const newProfilePicUrl = await uploadProfilePicture(user.id, file);
+      if (newProfilePicUrl) {
+        setProfilePicUrl(newProfilePicUrl);
+        // Reload user details to get updated profile
+        await loadUserDetails();
+      }
+    } catch (error) {
+      console.error('Error uploading profile picture:', error);
+      alert('Failed to upload profile picture. Please try again.');
+    } finally {
+      setIsUploadingPic(false);
+    }
+  };
+
+  const handleSaveResponse = async () => {
+    if (messages.length === 0 || !sessionId) {
+      alert('No conversation to save');
+      return;
+    }
+
+    setIsSavingResponse(true);
+    try {
+      // Find the last AI response
+      const lastAIResponse = messages.filter(m => m.role === 'assistant').pop();
+      if (!lastAIResponse) {
+        alert('No AI response to save');
+        return;
+      }
+
+      // Generate PDF from the conversation
+      const conversationText = messages.map(m => 
+        `${m.role === 'user' ? 'You' : 'AI Assistant'}: ${m.content}`
+      ).join('\n\n');
+
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-pdf-response`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          conversationText,
+          title: 'Dashboard Conversation',
+          sessionId
+        }),
+      });
+
+      if (response.ok) {
+        alert('Conversation saved as PDF successfully!');
+      } else {
+        throw new Error('Failed to save conversation');
+      }
+    } catch (error) {
+      console.error('Error saving response:', error);
+      alert('Failed to save conversation. Please try again.');
+    } finally {
+      setIsSavingResponse(false);
+    }
+  };
+
+  const handleGenerateStartupKit = async () => {
+    if (!user || !userDetails) {
+      alert('Please update your profile details first');
+      navigate('/user-details');
+      return;
+    }
+
+    setIsGeneratingKit(true);
+    try {
+      const kitResponse = await generateStartupKit(user.id, userDetails);
+      
+      if (kitResponse.success) {
+        // Add a message to chat about the kit generation
+        const kitMessage = {
+          role: 'assistant' as const,
+          content: `🎉 Your comprehensive Startup Kit has been generated and saved! 
+
+The kit includes:
+• Legal guidance and compliance requirements
+• Financial setup recommendations  
+• Government schemes and funding opportunities
+• Branding and marketing strategies
+• Personalized business roadmap
+
+You can find your "${userDetails.business_name || 'Your Business'} Startup Kit" in the AI Response Documents section.`,
+          botType: 'startup_kit'
+        };
+        
+        setMessages(prev => [...prev, kitMessage]);
+        alert('Startup Kit generated successfully! Check your AI Response Documents.');
+      } else {
+        throw new Error('Failed to generate startup kit');
+      }
+    } catch (error) {
+      console.error('Error generating startup kit:', error);
+      alert('Failed to generate startup kit. Please try again.');
+    } finally {
+      setIsGeneratingKit(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-900 text-white">
       {/* Header */}
@@ -179,6 +332,22 @@ const DashboardPage: React.FC = () => {
             </button>
           </div>
         </div>
+        
+        {/* Flash Message */}
+        {showFlashMessage && (
+          <div className="mt-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2 overflow-hidden">
+            <div className="animate-scroll whitespace-nowrap">
+              <span className="inline-flex items-center">
+                <AlertCircle className="h-4 w-4 mr-2" />
+                Keep your profile updated to get tailored responses for all your business queries.
+                <span className="mx-8">•</span>
+                Keep your profile updated to get tailored responses for all your business queries.
+                <span className="mx-8">•</span>
+                Keep your profile updated to get tailored responses for all your business queries.
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex">
@@ -186,17 +355,35 @@ const DashboardPage: React.FC = () => {
         <div className="w-80 bg-slate-800 min-h-screen p-6 border-r border-slate-700">
           {/* Profile Section */}
           <div className="text-center mb-8">
-            <div className="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+            <div className="relative w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
               <img 
-                src="https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop&crop=face" 
+                src={profilePicUrl} 
                 alt="Profile" 
                 className="w-full h-full object-cover"
               />
+              {/* Edit Icon Overlay */}
+              <label className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleProfilePicChange}
+                  className="hidden"
+                  disabled={isUploadingPic}
+                />
+                <Edit3 className="h-6 w-6 text-white" />
+              </label>
+              {isUploadingPic && (
+                <div className="absolute inset-0 bg-black bg-opacity-75 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                </div>
+              )}
             </div>
             <h2 className="text-xl font-bold mb-1">
-              {user?.user_metadata?.full_name || 'Ethan Carter'}
+              {userDetails?.full_name || user?.user_metadata?.full_name || 'Startup Founder'}
             </h2>
-            <p className="text-gray-400 mb-6">Founder</p>
+            <p className="text-gray-400 mb-6">
+              {userDetails?.business_name ? `Founder, ${userDetails.business_name}` : 'Founder'}
+            </p>
             <button
               onClick={handleUpdateProfile}
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors w-full mb-3"
@@ -257,10 +444,10 @@ const DashboardPage: React.FC = () => {
         {/* Main Content */}
         <div className="flex-1 p-8">
           {/* Chat Section */}
-          <div className="bg-slate-800 rounded-2xl p-12">
+          <div className="bg-slate-800 rounded-2xl p-12 mb-6">
             {messages.length === 0 ? (
               <h2 className="text-xl font-medium text-center mb-6 text-gray-300">
-                How can I help you today, {user?.user_metadata?.full_name?.split(' ')[0] || 'Ethan'}?
+                How can I help you today, {userDetails?.full_name?.split(' ')[0] || user?.user_metadata?.full_name?.split(' ')[0] || 'Founder'}?
               </h2>
             ) : (
               <div className="mb-6 max-h-96 overflow-y-auto space-y-4">
@@ -276,6 +463,11 @@ const DashboardPage: React.FC = () => {
                           : 'bg-slate-700 text-gray-100'
                       }`}
                     >
+                      {message.botType && message.botType !== 'main_dashboard' && (
+                        <div className="text-xs opacity-75 mb-1">
+                          {message.botType.replace('_', ' ').toUpperCase()} BOT
+                        </div>
+                      )}
                       <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                     </div>
                   </div>
@@ -333,6 +525,27 @@ const DashboardPage: React.FC = () => {
                 </div>
               )}
             </form>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex space-x-4">
+            <button
+              onClick={handleSaveResponse}
+              disabled={isSavingResponse || messages.length === 0}
+              className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Save className="h-5 w-5" />
+              <span>{isSavingResponse ? 'Saving...' : 'Save AI Response'}</span>
+            </button>
+            
+            <button
+              onClick={handleGenerateStartupKit}
+              disabled={isGeneratingKit}
+              className="flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Package className="h-5 w-5" />
+              <span>{isGeneratingKit ? 'Generating...' : 'Get me Startup-Kit'}</span>
+            </button>
           </div>
         </div>
       </div>

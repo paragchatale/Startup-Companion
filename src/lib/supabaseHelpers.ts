@@ -261,13 +261,27 @@ export const callBrandingMarketingBot = async (message: string, sessionId?: stri
   return data;
 };
 
-export const callMainDashboardBot = async (message: string, sessionId?: string, chatHistory?: any[]) => {
+export const callMainDashboardBot = async (message: string, sessionId?: string, chatHistory?: any[], userDetails?: UserDetails) => {
   const { data, error } = await supabase.functions.invoke('main-dashboard-bot', {
-    body: { message, sessionId, chatHistory }
+    body: { message, sessionId, chatHistory, userDetails }
   });
 
   if (error) {
     console.error('Error calling main dashboard bot:', error);
+    throw error;
+  }
+
+  return data;
+};
+
+// Generate comprehensive startup kit
+export const generateStartupKit = async (userId: string, userDetails: UserDetails): Promise<{ success: boolean; kitUrl?: string }> => {
+  const { data, error } = await supabase.functions.invoke('generate-startup-kit', {
+    body: { userId, userDetails }
+  });
+
+  if (error) {
+    console.error('Error generating startup kit:', error);
     throw error;
   }
 
