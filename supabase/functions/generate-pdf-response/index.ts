@@ -7,13 +7,13 @@ const corsHeaders = {
 };
 
 interface RequestBody {
-  responseId: string;
+  conversationText: string;
   title?: string;
+  sessionId?: string;
 }
 
-// Simple HTML to PDF conversion using Puppeteer-like approach
-// For production, consider using a dedicated PDF service
-const generatePDFContent = (title: string, userMessage: string, aiResponse: string, userName: string, botType: string) => {
+// Generate HTML content for PDF
+const generatePDFContent = (title: string, conversationText: string, userName: string) => {
   const currentDate = new Date().toLocaleDateString();
   
   return `
@@ -45,27 +45,28 @@ const generatePDFContent = (title: string, userMessage: string, aiResponse: stri
             color: #666;
             margin: 5px 0;
         }
-        .section {
-            margin-bottom: 25px;
-            padding: 20px;
-            border-left: 4px solid #3b82f6;
+        .conversation {
             background-color: #f8fafc;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
         }
-        .section h2 {
+        .conversation h2 {
             color: #1e40af;
             margin-top: 0;
         }
-        .question {
-            background-color: #e0f2fe;
-            padding: 15px;
-            border-radius: 8px;
+        .message {
             margin-bottom: 15px;
-        }
-        .response {
-            background-color: #f0f9ff;
-            padding: 15px;
+            padding: 10px;
             border-radius: 8px;
+        }
+        .user-message {
+            background-color: #e0f2fe;
             border-left: 4px solid #0ea5e9;
+        }
+        .ai-message {
+            background-color: #f0f9ff;
+            border-left: 4px solid #3b82f6;
         }
         .footer {
             text-align: center;
@@ -75,45 +76,27 @@ const generatePDFContent = (title: string, userMessage: string, aiResponse: stri
             color: #666;
             font-size: 12px;
         }
-        .bot-type {
-            display: inline-block;
-            background-color: #3b82f6;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>Start-up Companion</h1>
         <p>AI-Powered Business Advisory Session</p>
-        <p><span class="bot-type">${botType.replace('_', ' ')}</span></p>
         <p>Generated on: ${currentDate}</p>
         <p>For: ${userName}</p>
     </div>
 
-    <div class="section">
-        <h2>Session Summary</h2>
-        <p><strong>Title:</strong> ${title}</p>
-        <p><strong>Advisory Type:</strong> ${botType.replace('_', ' ').toUpperCase()}</p>
-        <p><strong>Date:</strong> ${currentDate}</p>
-    </div>
-
-    <div class="section">
-        <h2>Your Question</h2>
-        <div class="question">
-            ${userMessage}
-        </div>
-    </div>
-
-    <div class="section">
-        <h2>AI Response</h2>
-        <div class="response">
-            ${aiResponse.replace(/\n/g, '<br>')}
+    <div class="conversation">
+        <h2>Conversation Summary</h2>
+        <div class="conversation-content">
+            ${conversationText.split('\n\n').map(line => {
+              if (line.startsWith('You:')) {
+                return `<div class="message user-message"><strong>You:</strong> ${line.substring(4)}</div>`;
+              } else if (line.startsWith('AI Assistant:')) {
+                return `<div class="message ai-message"><strong>AI Assistant:</strong> ${line.substring(13)}</div>`;
+              }
+              return `<div class="message">${line}</div>`;
+            }).join('')}
         </div>
     </div>
 
@@ -150,51 +133,27 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { responseId, title }: RequestBody = await req.json();
-
-    // Fetch the AI response
-    const { data: aiResponseData, error: fetchError } = await supabase
-      .from('ai_responses')
-      .select('*')
-      .eq('id', responseId)
-      .eq('user_id', user.id)
-      .single();
-
-    if (fetchError || !aiResponseData) {
-      return new Response(
-        JSON.stringify({ error: 'AI response not found' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    const { conversationText, title, sessionId }: RequestBody = await req.json();
 
     // Get user details for the PDF
     const { data: userDetails } = await supabase
       .from('user_details')
       .select('full_name')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
     const userName = userDetails?.full_name || 'Startup Founder';
-    const pdfTitle = title || `${aiResponseData.bot_type.replace('_', ' ')} Advisory Session`;
+    const pdfTitle = title || 'Dashboard Conversation';
 
     // Generate HTML content
-    const htmlContent = generatePDFContent(
-      pdfTitle,
-      aiResponseData.user_message,
-      aiResponseData.ai_response,
-      userName,
-      aiResponseData.bot_type
-    );
+    const htmlContent = generatePDFContent(pdfTitle, conversationText, userName);
 
-    // For this example, we'll use a simple HTML-to-PDF conversion
-    // In production, you might want to use Puppeteer or a dedicated PDF service
-    
-    // Create a simple PDF-like response (HTML content that can be saved as PDF by browser)
+    // Create filename
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const fileName = `${aiResponseData.bot_type}_response_${timestamp}.html`;
+    const fileName = `dashboard_conversation_${timestamp}.html`;
     const filePath = `${user.id}/${fileName}`;
 
-    // Upload HTML content to storage (can be converted to PDF by frontend)
+    // Upload HTML content to storage
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('ai-response-docs')
       .upload(filePath, new Blob([htmlContent], { type: 'text/html' }), {
@@ -203,6 +162,7 @@ Deno.serve(async (req) => {
       });
 
     if (uploadError) {
+      console.error('Upload error:', uploadError);
       throw new Error(`Failed to upload PDF: ${uploadError.message}`);
     }
 
@@ -211,26 +171,44 @@ Deno.serve(async (req) => {
       .from('ai-response-docs')
       .getPublicUrl(filePath);
 
-    // Update the AI response record
-    const { error: updateError } = await supabase
+    // Create session if not provided
+    let currentSessionId = sessionId;
+    if (!currentSessionId) {
+      const { data: newSession } = await supabase
+        .from('chat_sessions')
+        .insert({
+          user_id: user.id,
+          session_type: 'dashboard_save',
+          title: pdfTitle
+        })
+        .select()
+        .single();
+      currentSessionId = newSession?.id;
+    }
+
+    // Store the response record
+    const { data: responseRecord } = await supabase
       .from('ai_responses')
-      .update({
+      .insert({
+        user_id: user.id,
+        session_id: currentSessionId,
+        bot_type: 'conversation_save',
+        user_message: 'Save conversation as PDF',
+        ai_response: 'Conversation saved successfully',
         pdf_generated: true,
         pdf_url: urlData.publicUrl,
         is_satisfied: true
       })
-      .eq('id', responseId);
-
-    if (updateError) {
-      console.error('Failed to update AI response:', updateError);
-    }
+      .select()
+      .single();
 
     return new Response(
       JSON.stringify({
         success: true,
         pdfUrl: urlData.publicUrl,
         fileName: fileName,
-        message: 'PDF generated successfully'
+        message: 'Conversation saved successfully',
+        responseId: responseRecord?.id
       }),
       { 
         status: 200, 
@@ -241,7 +219,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('PDF generation error:', error);
     return new Response(
-      JSON.stringify({ error: 'Failed to generate PDF' }),
+      JSON.stringify({ error: 'Failed to save conversation' }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

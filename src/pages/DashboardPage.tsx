@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
 import { callMainDashboardBot, getUserDetails, uploadProfilePicture, generateStartupKit } from '../lib/supabaseHelpers';
-import { Scale, Building2, DollarSign, Palette, ChevronRight, Send, Mic, FileText, Bot, Settings, Star, X, MicOff, Save, Package, CreditCard as Edit3, AlertCircle } from 'lucide-react';
+import { Scale, Building2, DollarSign, Palette, ChevronRight, Send, Mic, FileText, Bot, Settings, Star, X, MicOff, Save, Package, Edit3, AlertCircle } from 'lucide-react';
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
@@ -117,6 +117,15 @@ const DashboardPage: React.FC = () => {
     navigate(path);
   };
 
+  const checkProfileCompleteness = () => {
+    if (!userDetails) return false;
+    
+    const criticalFields = ['business_name', 'industry', 'location', 'business_stage'];
+    const missingFields = criticalFields.filter(field => !userDetails[field]);
+    
+    return missingFields.length === 0;
+  };
+
   const handleChatSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (chatInput.trim() && !isLoading) {
@@ -216,21 +225,14 @@ const DashboardPage: React.FC = () => {
   };
 
   const handleSaveResponse = async () => {
-    if (messages.length === 0 || !sessionId) {
+    if (messages.length === 0) {
       alert('No conversation to save');
       return;
     }
 
     setIsSavingResponse(true);
     try {
-      // Find the last AI response
-      const lastAIResponse = messages.filter(m => m.role === 'assistant').pop();
-      if (!lastAIResponse) {
-        alert('No AI response to save');
-        return;
-      }
-
-      // Generate PDF from the conversation
+      // Create conversation text
       const conversationText = messages.map(m => 
         `${m.role === 'user' ? 'You' : 'AI Assistant'}: ${m.content}`
       ).join('\n\n');
@@ -251,7 +253,8 @@ const DashboardPage: React.FC = () => {
       if (response.ok) {
         alert('Conversation saved as PDF successfully!');
       } else {
-        throw new Error('Failed to save conversation');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save conversation');
       }
     } catch (error) {
       console.error('Error saving response:', error);
@@ -262,9 +265,31 @@ const DashboardPage: React.FC = () => {
   };
 
   const handleGenerateStartupKit = async () => {
-    if (!user || !userDetails) {
-      alert('Please update your profile details first');
-      navigate('/user-details');
+    if (!user) {
+      alert('Please log in to generate startup kit');
+      return;
+    }
+
+    // Check if profile is complete
+    if (!checkProfileCompleteness()) {
+      setShowFlashMessage(true);
+      setTimeout(() => setShowFlashMessage(false), 10000);
+      
+      // Add message to chat about incomplete profile
+      const incompleteMessage = {
+        role: 'assistant' as const,
+        content: `To generate your comprehensive Startup Kit, I need some additional information about your business. Please update your profile with:
+
+• Business name
+• Industry/sector
+• Location
+• Business stage
+
+Click "Update User Details" to complete your profile, then I'll create a personalized startup kit with legal guidance, financial recommendations, government schemes, and branding strategies tailored specifically for your business.`,
+        botType: 'profile_check'
+      };
+      
+      setMessages(prev => [...prev, incompleteMessage]);
       return;
     }
 
@@ -337,14 +362,14 @@ You can find your "${userDetails.business_name || 'Your Business'} Startup Kit" 
         <div className="w-80 bg-slate-800 min-h-screen p-6 border-r border-slate-700">
           {/* Profile Section */}
           <div className="text-center mb-8">
-            <div className="relative w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+            <div className="relative w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center group">
               <img 
                 src={profilePicUrl} 
                 alt="Profile" 
                 className="w-full h-full object-cover"
               />
               {/* Edit Icon Overlay */}
-              <label className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
+              <label className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                 <input
                   type="file"
                   accept="image/*"
