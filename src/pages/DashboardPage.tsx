@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
 import { callMainDashboardBot, getUserDetails, uploadProfilePicture, generateStartupKit } from '../lib/supabaseHelpers';
-import { Scale, Building2, DollarSign, Palette, ChevronRight, Send, Mic, FileText, Bot, Settings, Star, X, MicOff, Save, Package, Edit3, AlertCircle } from 'lucide-react';
+import { Scale, Building2, DollarSign, Palette, ChevronRight, Send, Mic, FileText, Bot, Settings, Star, X, MicOff, Save, Package, CreditCard as Edit3, AlertCircle } from 'lucide-react';
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
