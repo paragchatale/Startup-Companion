@@ -146,7 +146,7 @@ Deno.serve(async (req) => {
         missingDetails = true;
       }
 
-      userContext = `User Profile:
+      userContext = \`User Profile:
 - Name: ${currentUserDetails.full_name || 'Not provided'}
 - Business: ${currentUserDetails.business_name || 'Not provided'}
 - Stage: ${currentUserDetails.business_stage || 'idea'}
@@ -189,7 +189,7 @@ ${missingDetails ? 'IMPORTANT: Key profile information is missing. Encourage use
 
     // Prepare messages for OpenRouter
     const messages = [
-      { role: 'system', content: `${SYSTEM_PROMPT}\n\n${userContext}` },
+      { role: 'system', content: \`${SYSTEM_PROMPT}\n\n${userContext}` },
       ...chatHistory,
       { role: 'user', content: message }
     ];
@@ -198,7 +198,7 @@ ${missingDetails ? 'IMPORTANT: Key profile information is missing. Encourage use
     const openRouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openRouterApiKey}`,
+        'Authorization': \`Bearer ${openRouterApiKey}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': 'https://startup-companion.com',
         'X-Title': 'Startup Companion - Main Dashboard'
