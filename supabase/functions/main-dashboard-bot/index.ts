@@ -87,6 +87,7 @@ async function callExpertBot(botType: string, message: string, userDetails: any,
     'financial': 'financial-setup-bot',
     'government': 'govt-scheme-matcher',
     'branding': 'branding-marketing-bot'
+    'registration': 'registration-guide-guru-bot'
   };
 
   const endpoint = botEndpoints[botType as keyof typeof botEndpoints];
@@ -229,6 +230,9 @@ ${missingDetails ? 'IMPORTANT: Key profile information is missing. Encourage use
       } else if (lastAssistantMessage?.content.includes('Branding')) {
         expertResponse = await callExpertBot('branding', message, currentUserDetails, supabaseUrl, supabaseServiceKey, openRouterApiKey, user.id);
         routedBotType = 'branding_marketing';
+      } else if (lastAssistantMessage?.content.includes('Registration Guide')) {
+        expertResponse = await callExpertBot('registration', message, currentUserDetails, supabaseUrl, supabaseServiceKey, openRouterApiKey, user.id);
+        routedBotType = 'registration_guide_guru';
       }
     }
 
@@ -264,6 +268,7 @@ ${missingDetails ? 'IMPORTANT: Key profile information is missing. Encourage use
     const financeKeywords = ['finance', 'financial', 'banking', 'account', 'funding', 'investment', 'loan', 'gst', 'tax', 'accounting', 'bookkeeping'];
     const schemeKeywords = ['government', 'scheme', 'grant', 'subsidy', 'funding', 'incubator', 'accelerator', 'startup india'];
     const brandingKeywords = ['brand', 'branding', 'marketing', 'logo', 'website', 'social media', 'advertising', 'promotion'];
+    const registrationKeywords = ['registration', 'register', 'company name', 'entity', 'incorporation', 'moa', 'aoa', 'dsc', 'din', 'private limited', 'llp', 'partnership', 'proprietorship'];
 
     let suggestedBot = '';
     
@@ -275,6 +280,8 @@ ${missingDetails ? 'IMPORTANT: Key profile information is missing. Encourage use
       suggestedBot = 'government';
     } else if (brandingKeywords.some(keyword => messageLower.includes(keyword))) {
       suggestedBot = 'branding';
+    } else if (registrationKeywords.some(keyword => messageLower.includes(keyword))) {
+      suggestedBot = 'registration';
     }
 
     // Prepare messages for OpenRouter
@@ -319,7 +326,8 @@ ${missingDetails ? 'IMPORTANT: Key profile information is missing. Encourage use
         'legal': 'Legal Advisor',
         'financial': 'Financial Setup Expert',
         'government': 'Government Scheme Matcher',
-        'branding': 'Branding & Marketing Expert'
+        'branding': 'Branding & Marketing Expert',
+        'registration': 'Registration Guide Guru'
       };
       
       aiResponse += `\n\nThis sounds like a ${suggestedBot} question. Would you like me to connect with our ${botNames[suggestedBot as keyof typeof botNames]} to get you detailed guidance?`;

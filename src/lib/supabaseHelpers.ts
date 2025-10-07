@@ -261,6 +261,19 @@ export const callBrandingMarketingBot = async (message: string, sessionId?: stri
   return data;
 };
 
+export const callRegistrationGuideGuruBot = async (message: string, sessionId?: string, chatHistory?: any[]) => {
+  const { data, error } = await supabase.functions.invoke('registration-guide-guru-bot', {
+    body: { message, sessionId, chatHistory }
+  });
+
+  if (error) {
+    console.error('Error calling registration guide guru bot:', error);
+    throw error;
+  }
+
+  return data;
+};
+
 export const callMainDashboardBot = async (message: string, sessionId?: string, chatHistory?: any[], userDetails?: UserDetails) => {
   const { data, error } = await supabase.functions.invoke('main-dashboard-bot', {
     body: { message, sessionId, chatHistory, userDetails }

@@ -14,6 +14,7 @@ import DashboardPage from './pages/DashboardPage';
 import UserDetailsForm from './components/UserDetailsForm';
 import MyBizDocsPage from './pages/MyBizDocsPage';
 import AIResponseDocsPage from './pages/AIResponseDocsPage';
+import RegistrationGuideGuruPage from './pages/RegistrationGuideGuruPage';
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
             <Route path="/user-details" element={<UserDetailsForm />} />
             <Route path="/my-biz-docs" element={<MyBizDocsPage />} />
             <Route path="/ai-response-docs" element={<AIResponseDocsPage />} />
+            <Route path="/registration-guide-guru" element={<RegistrationGuideGuruPage />} />
           </Routes>
         </div>
       </Router>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
 import { callMainDashboardBot, getUserDetails, uploadProfilePicture, generateStartupKit } from '../lib/supabaseHelpers';
-import { Scale, Building2, DollarSign, Palette, ChevronRight, Send, Mic, FileText, Bot, Settings, Star, X, MicOff, Save, Package, CreditCard as Edit3, AlertCircle } from 'lucide-react';
+import { Scale, Building2, DollarSign, Palette, FileText as RegistrationIcon, ChevronRight, Send, Mic, FileText, Bot, Settings, Star, X, MicOff, Save, Package, CreditCard as Edit3, AlertCircle } from 'lucide-react';
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
@@ -110,6 +110,15 @@ const DashboardPage: React.FC = () => {
       icon: Palette,
       color: 'text-pink-400',
       path: '/branding-marketing'
+    },
+    {
+      id: 'registration-guide-guru',
+      title: 'Registration Guide Guru',
+      description: 'Complete company registration',
+      tooltip: 'Get complete guidance for company name registration, entity selection, and legal compliance.',
+      icon: RegistrationIcon,
+      color: 'text-indigo-400',
+      path: '/registration-guide-guru'
     }
   ];
 
